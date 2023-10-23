@@ -6,7 +6,7 @@ interface ConfigProps {
   zod: Schema;
 }
 
-export type ZodConfig<T> = Record<keyof T, ConfigProps>;
+type ZodConfig<T> = Record<keyof T, ConfigProps>;
 
 export default class ZodValidation {
   static validate<T>(config: ZodConfig<T>): T {

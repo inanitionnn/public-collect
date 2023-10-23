@@ -10,7 +10,10 @@ import config from './utils/config/config';
       envFilePath: '.env',
       validate: config,
     }),
-    CacheModule.register({ isGlobal: true }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: +process.env.CACHE_SECONDS * 1000,
+    }),
   ],
   controllers: [],
   providers: [],
