@@ -13,13 +13,13 @@ async function bootstrap() {
   );
   const port = process.env.PORT || 3000;
   const logger = new Logger('Main');
-
+  app.setGlobalPrefix('api');
+  app.useBodyParser('text/plain');
   await app.listen(port);
   logger.log('==========================');
   logger.log(`Application is running on:`);
   logger.log(` ~~ ${await app.getUrl()}`);
   logger.log(` ~~ http://localhost:${port}`);
-
   logger.log('==========================');
 }
 bootstrap();

@@ -35,6 +35,10 @@ export default () => {
       value: process.env.OPEN_AI_KEY,
       zod: z.string().min(1),
     },
+    dbUrl: {
+      value: process.env.DB_URL,
+      zod: z.string().min(1).url(),
+    },
   };
 
   return ZodValidation.validate(configs);

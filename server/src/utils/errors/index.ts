@@ -1,27 +1,23 @@
-import { Logger } from '@nestjs/common';
 import * as createError from 'http-errors';
 
-export default class myError {
-  constructor(private logger: Logger) {}
+export default class MyError {
   private create(code: number, error?: any) {
     let errorText = '';
-    if (error.errors) {
+
+    if (error?.errors) {
       errorText = `${error.errors[0].path[0]}: ${error.errors[0].message}`;
-    }
-    if (typeof error === 'string') {
+    } else if (error.errors) {
+      errorText = `${error.errors[0].path[0]}: ${error.errors[0].message}`;
+    } else if (typeof error === 'string') {
       errorText = error;
-    }
-    if (error.message && typeof error.message === 'string') {
+    } else if (error.message && typeof error.message === 'string') {
       errorText = error.message;
-    }
-    if (error.message && error.message.length) {
+    } else if (error.message && error.message.length) {
       errorText = error.message[0];
-    }
-    if (error.messages && error.messages.length) {
+    } else if (error.messages && error.messages.length) {
       errorText = error.messages[0];
     }
 
-    this.logger.error(`[${code}] ${errorText}`);
     return createError(code, errorText);
   }
 

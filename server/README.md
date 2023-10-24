@@ -1,3 +1,5 @@
+# Nest.js + Bun.js + Drizzle
+
 ## Installation
 
 ```bash
@@ -9,7 +11,9 @@ $ bun install
 ```bash
 # development
 $ bun dev
+```
 
+```bash
 # production
 $ bun prod
 ```
@@ -19,33 +23,33 @@ $ bun prod
 ```bash
 # unit tests
 $ bun test
+```
 
-# e2e tests
-$ bun test:e2e
-
+```bash
 # test coverage
 $ bun test:cov
 ```
 
-## About drizzle
+## Drizzle
 
-Drizzle kit don't have PgVector support, so i don't use push command
+Drizzle kit **don't** have PgVector support, so you **can't** use push command
 
 ```bash
+#drizzle kit push command
 $ bun run drizzle-kit push:pg
 ```
 
-You can push generated SQL by yourself.
+You **can** push generated SQL by yourself.
 
-1. install in you pc PgVector
+1. install PgVector on your PC
 2. create database
-3. run SQL query in the database
+3. run this SQL in the database
 
 ```bash
 $ CREATE EXTENSION IF NOT EXISTS vector
 ```
 
-4. generate SQL
+4. generate drizzle SQL
 
 ```bash
 $ bun db:generate
@@ -64,3 +68,14 @@ to
 ```
 
 6. run the SQL
+
+## Sharp
+
+For Sharp to work, you need to install the version that is suitable for your device. In my case, this is --platform=linux --arch=x64
+
+```bash
+# don't know how to do this in bun
+# but it's okay if you mix npm and bun
+# if you know how to fix this, please text me
+$ npm install --platform=linux --arch=x64 sharp
+```
