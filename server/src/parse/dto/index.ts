@@ -1,2 +1,5 @@
-export * from './titleParse.response';
-export * from './titleParse.request';
+export * from './getTitle.response';
+export * from './getTitle.request';
+export * from './getFields.request';
+export * from './getImages.request';
+export * from './search.response';

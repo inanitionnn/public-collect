@@ -15,7 +15,7 @@ import { series } from '../series';
 import { comics } from '../comics';
 import { books } from '../books';
 
-export const watchedEnum = pgEnum('watched', [
+export const WatchedEnum = pgEnum('watched', [
   'reviewing',
   'viewing',
   'completed',
@@ -32,7 +32,7 @@ export const progress = pgTable(
     serieId: uuid('serie_id').references(() => series.id),
     comicId: uuid('comic_id').references(() => comics.id),
     bookId: uuid('book_id').references(() => books.id),
-    watched: watchedEnum('watched').default('planned').notNull(),
+    watched: WatchedEnum('watched').default('planned').notNull(),
     finishedOn: varchar('finished_on', { length: 256 }),
     note: text('note'),
     rate: smallint('rate'),
@@ -58,6 +58,8 @@ export const progressRelations = relations(progress, ({ many }) => ({
   comics: many(comics),
   books: many(books),
 }));
+
+export type WatchedType = (typeof WatchedEnum.enumValues)[number];
 
 export type ProgressSelect = InferSelectModel<typeof progress>;
 

@@ -1,9 +1,4 @@
-import {
-  InferInsertModel,
-  InferSelectModel,
-  relations,
-  sql,
-} from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   pgEnum,
   pgTable,
@@ -18,15 +13,14 @@ import { orderToMedia } from '../orders';
 import { seasons } from '../seasons';
 import { collectionsToMedia } from '../collections';
 import { progress } from '../progress';
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 
-export const serieEnum = pgEnum('serieType', ['tv', 'anime', 'animated']);
+export const SerieEnum = pgEnum('serieType', ['tv', 'anime', 'animated']);
 
 export const series = pgTable(
   'series',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    type: serieEnum('serieType').default('tv').notNull(),
+    type: SerieEnum('serieType').default('tv').notNull(),
     title: varchar('title', { length: 256 }).notNull(),
     startYear: smallint('start_year'),
     endYear: smallint('end_year'),
@@ -64,13 +58,7 @@ export const seriesRelations = relations(series, ({ many, one }) => ({
   seasons: many(seasons),
 }));
 
-export type SerieSelect = InferSelectModel<typeof series>;
-export const ZodSerieSelect = createSelectSchema(series, {
-  title: (s) => s.title.min(1),
-  embedding: (s) => s.embedding.array(),
-});
-export type SerieInsert = InferInsertModel<typeof series>;
-export const ZodSerieInsert = createInsertSchema(series, {
-  title: (s) => s.title.min(1),
-  embedding: (s) => s.embedding.optional().array(),
-});
+export type SerieType = (typeof SerieEnum.enumValues)[number];
+
+// export type SerieSelect = InferSelectModel<typeof series>;
+// export type SerieInsert = InferInsertModel<typeof series>;

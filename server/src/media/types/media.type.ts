@@ -4,4 +4,5 @@ export const MediaEnum = {
   comic: 'comic',
   book: 'book',
 } as const;
+
 export type MediaType = (typeof MediaEnum)[keyof typeof MediaEnum];

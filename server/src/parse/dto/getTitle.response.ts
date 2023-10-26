@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class TitleParseResponse {
+export class GetTitleResponse {
   @ApiProperty()
   title: string;
 

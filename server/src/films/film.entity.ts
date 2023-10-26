@@ -1,9 +1,4 @@
-import {
-  InferInsertModel,
-  InferSelectModel,
-  relations,
-  sql,
-} from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   pgEnum,
   pgTable,
@@ -17,15 +12,14 @@ import { vector } from 'pgvector/drizzle-orm';
 import { orderToMedia } from '../orders';
 import { collectionsToMedia } from '../collections';
 import { progress } from '../progress';
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 
-export const filmEnum = pgEnum('filmType', ['movie', 'anime', 'animated']);
+export const FilmEnum = pgEnum('filmType', ['movie', 'anime', 'animated']);
 
 export const films = pgTable(
   'films',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    type: filmEnum('filmType').default('movie').notNull(),
+    type: FilmEnum('filmType').default('movie').notNull(),
     title: varchar('title', { length: 256 }).notNull(),
     year: smallint('year'),
     country: varchar('country', { length: 256 }).array(),
@@ -64,13 +58,8 @@ export const filmsRelations = relations(films, ({ many, one }) => ({
   collectionsToFilms: many(collectionsToMedia),
 }));
 
-export type FilmSelect = InferSelectModel<typeof films>;
-export const ZodFilmSelect = createSelectSchema(films, {
-  title: (s) => s.title.min(1),
-  embedding: (s) => s.embedding.array(),
-});
-export type FilmInsert = InferInsertModel<typeof films>;
-export const ZodFilmInsert = createInsertSchema(films, {
-  title: (s) => s.title.min(1),
-  embedding: (s) => s.embedding.optional().array(),
-});
+export type FilmType = (typeof FilmEnum.enumValues)[number];
+
+// export type FilmSelect = InferSelectModel<typeof films>;
+
+// export type FilmInsert = InferInsertModel<typeof films>;

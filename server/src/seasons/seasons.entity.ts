@@ -1,4 +1,4 @@
-import { InferSelectModel, relations } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import { pgTable, uuid, varchar, index, smallint } from 'drizzle-orm/pg-core';
 import { series } from '../series';
 
@@ -6,8 +6,8 @@ export const seasons = pgTable(
   'seasons',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    seriesId: uuid('serie_id'),
-    number: smallint('number'),
+    seriesId: uuid('serie_id').notNull(),
+    number: smallint('number').notNull(),
     title: varchar('title', { length: 256 }),
     episodes: smallint('episodes'),
     rate: smallint('rate'),
@@ -26,4 +26,5 @@ export const seasonsRelations = relations(seasons, ({ one }) => ({
   }),
 }));
 
-export type Season = InferSelectModel<typeof seasons>;
+// export type SeasonSelect = InferSelectModel<typeof seasons>;
+// export type SeasonInsert = InferInsertModel<typeof seasons>;

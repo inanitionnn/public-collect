@@ -1,10 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { MediaType } from 'src/media/types';
 
-export class TitleParseRequest {
+export class getImagesRequest {
   @ApiProperty()
   mediaType: MediaType;
 
   @ApiProperty()
-  query: string;
+  title: string;
+
+  @ApiProperty()
+  count: number;
 }

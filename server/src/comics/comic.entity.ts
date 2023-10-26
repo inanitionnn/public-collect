@@ -1,9 +1,4 @@
-import {
-  InferInsertModel,
-  InferSelectModel,
-  relations,
-  sql,
-} from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   pgEnum,
   pgTable,
@@ -17,15 +12,14 @@ import { vector } from 'pgvector/drizzle-orm';
 import { orderToMedia } from '../orders';
 import { collectionsToMedia } from '../collections';
 import { progress } from '../progress';
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 
-export const comicEnum = pgEnum('comicType', ['manga', 'comic']);
+export const ComicEnum = pgEnum('comicType', ['manga', 'comic']);
 
 export const comics = pgTable(
   'comics',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    type: comicEnum('comicType').default('comic').notNull(),
+    type: ComicEnum('comicType').default('comic').notNull(),
     title: varchar('title', { length: 256 }).notNull(),
     startYear: smallint('start_year'),
     endYear: smallint('end_year'),
@@ -62,15 +56,8 @@ export const comicsRelations = relations(comics, ({ many, one }) => ({
   collectionsToComics: many(collectionsToMedia),
 }));
 
-export type ComicType = (typeof comicEnum.enumValues)[number];
+export type ComicType = (typeof ComicEnum.enumValues)[number];
 
-export type ComicSelect = InferSelectModel<typeof comics>;
-export const ZodComicSelect = createSelectSchema(comics, {
-  title: (s) => s.title.min(1),
-  embedding: (s) => s.embedding.array(),
-});
-export type ComicInsert = InferInsertModel<typeof comics>;
-export const ZodComicInsert = createInsertSchema(comics, {
-  title: (s) => s.title.min(1),
-  embedding: (s) => s.embedding.optional().array(),
-});
+// export type ComicSelect = InferSelectModel<typeof comics>;
+
+// export type ComicInsert = InferInsertModel<typeof comics>;

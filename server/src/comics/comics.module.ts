@@ -1,4 +1,8 @@
 import { Module } from '@nestjs/common';
+import { ComicsService } from './comics.service';
 
-@Module({})
+@Module({
+  exports: [ComicsService],
+  providers: [ComicsService],
+})
 export class ComicsModule {}

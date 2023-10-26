@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import MyError from 'src/utils/errors';
 import { Promts } from '../constants';
 import { MediaType } from 'src/media/types';
-import { TitleParseResponse } from '../dto';
+import { GetTitleResponse } from '../dto';
 
 @Injectable()
 export class GptService {
@@ -93,8 +93,7 @@ export class GptService {
     const systemMessage2 = promtsArray2.join('\n');
 
     this.logger.log(
-      'buildMessages',
-      `PlotGenresTagsMessage: (${systemMessage1}). OtherFieldsMessage: (${systemMessage2})`,
+      `PlotGenresTagsMessage: \n(${systemMessage1}).\n OtherFieldsMessage: \n(${systemMessage2})`,
     );
     return { systemMessage1, systemMessage2 };
   }
@@ -105,7 +104,7 @@ export class GptService {
   public async getTitle(
     mediaType: MediaType,
     query: string,
-  ): Promise<TitleParseResponse> {
+  ): Promise<GetTitleResponse> {
     this.logger.log('titleParse');
 
     const gptAnswer = await this.sendMessage(
@@ -118,7 +117,7 @@ export class GptService {
       this.error.notFound('Nothing was found for your search');
     }
     const jsonAnswer = this.convertToJson(gptAnswer);
-    const result: TitleParseResponse = {
+    const result: GetTitleResponse = {
       title: jsonAnswer.title,
       year: Number(jsonAnswer.year),
     };
@@ -130,7 +129,7 @@ export class GptService {
 
   public async getFields(
     mediaType: MediaType,
-    query: string,
+    title: string,
     keys: string[],
   ): Promise<unknown> {
     this.logger.log('fieldsParse');
@@ -162,14 +161,14 @@ export class GptService {
     // SystemMessage1 - plot, genres, tags
     // SystemMessage2 - all others
 
-    const gptAnswer1 = await this.sendMessage(systemMessage1, query, 1, 300);
+    const gptAnswer1 = await this.sendMessage(systemMessage1, title, 1, 300);
 
     const jsonAnswer1 = this.convertToJson(gptAnswer1 || '');
     if (systemMessage2 === Promts.StartParsePromt) {
       return jsonAnswer1;
     }
 
-    const gptAnswer2 = await this.sendMessage(systemMessage2, query, 1, 500);
+    const gptAnswer2 = await this.sendMessage(systemMessage2, title, 1, 500);
     const jsonAnswer2 = this.convertToJson(gptAnswer2 || '');
 
     if (jsonAnswer2 && jsonAnswer1) {
@@ -181,6 +180,7 @@ export class GptService {
   }
 
   public async getEmbedding(userMessage: string): Promise<number[]> {
+    this.logger.log('getEmbedding');
     const openAi = new OpenAI({
       apiKey: process.env.OPEN_AI_KEY,
     });
@@ -191,7 +191,6 @@ export class GptService {
     const embedding = completion.data[0].embedding;
 
     this.logger.log(
-      'getEmbedding',
       `Usage ${completion.usage.total_tokens} tokens (${(
         (completion.usage.total_tokens * 0.0001) /
         1000
