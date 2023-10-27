@@ -1,10 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { BookResponseDto } from 'src/books';
-import { ComicResponseDto } from 'src/comics';
-import { FilmResponseDto } from 'src/films';
-import { SerieSeasonsDto } from 'src/series';
+import { IsArray } from 'class-validator';
+import { BookProgressDto, BookResponseDto } from 'src/books';
+import { ComicProgressDto, ComicResponseDto } from 'src/comics';
+import { FilmProgressDto, FilmResponseDto } from 'src/films';
+import { SerieProgressDto, SerieResponseDto } from 'src/series';
 
 export class MediaResponseDto {
   @ApiProperty()
-  media: FilmResponseDto | SerieSeasonsDto | ComicResponseDto | BookResponseDto;
+  media:
+    | FilmResponseDto
+    | SerieResponseDto
+    | ComicResponseDto
+    | BookResponseDto;
+}
+
+export class MediaResponseArrayDto {
+  @ApiProperty()
+  @IsArray()
+  media:
+    | FilmResponseDto[]
+    | SerieResponseDto[]
+    | ComicResponseDto[]
+    | BookResponseDto[];
 }

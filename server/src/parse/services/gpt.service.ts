@@ -2,8 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import MyError from 'src/utils/errors';
 import { Promts } from '../constants';
-import { MediaType } from 'src/media/types';
-import { GetTitleResponse } from '../dto';
+import { FieldsParseDto, TitleParseDto, TitleResponseDto } from '../dto';
 
 @Injectable()
 export class GptService {
@@ -101,12 +100,9 @@ export class GptService {
   //#endregion Private
 
   //#region Public
-  public async getTitle(
-    mediaType: MediaType,
-    query: string,
-  ): Promise<GetTitleResponse> {
+  public async getTitle(dto: TitleParseDto): Promise<TitleResponseDto> {
     this.logger.log('titleParse');
-
+    const { mediaType, query } = dto;
     const gptAnswer = await this.sendMessage(
       Promts.getSearchTitlePrompt(mediaType),
       query,
@@ -117,7 +113,7 @@ export class GptService {
       this.error.notFound('Nothing was found for your search');
     }
     const jsonAnswer = this.convertToJson(gptAnswer);
-    const result: GetTitleResponse = {
+    const result: TitleResponseDto = {
       title: jsonAnswer.title,
       year: Number(jsonAnswer.year),
     };
@@ -127,13 +123,9 @@ export class GptService {
     return result;
   }
 
-  public async getFields(
-    mediaType: MediaType,
-    title: string,
-    keys: string[],
-  ): Promise<unknown> {
+  public async getFields(dto: FieldsParseDto): Promise<unknown> {
     this.logger.log('fieldsParse');
-
+    const { keys, mediaType, title } = dto;
     let workPromts;
     switch (mediaType) {
       case 'film': {

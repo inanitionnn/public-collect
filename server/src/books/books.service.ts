@@ -1,6 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import MyError from 'src/utils/errors';
-import db from 'src/utils/db';
 import {
   eq,
   sql,
@@ -26,17 +25,24 @@ import {
 import { WatchedType, progress } from 'src/progress';
 
 import { SortType } from 'src/media';
+import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 @Injectable()
 export class BooksService {
   private readonly logger = new Logger(BooksService.name);
   private readonly error = new MyError();
 
+  constructor(
+    @Inject(DrizzleAsyncProvider)
+    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+  ) {}
+
   public async create(film: BookCreateDto): Promise<BookResponseDto> {
     this.logger.log('create');
 
     try {
-      const result = await db
+      const result = await this.db
         .insert(books)
         .values(film)
         .returning(BookResponseObject);
@@ -50,7 +56,7 @@ export class BooksService {
     this.logger.log('search');
 
     try {
-      const result = await db
+      const result = await this.db
         .select(BookResponseObject)
         .from(books)
         .where(
@@ -66,7 +72,7 @@ export class BooksService {
     this.logger.log('getByid');
 
     try {
-      const result = await db
+      const result = await this.db
         .select(BookProgressObject)
         .from(books)
         .where(eq(books.id, id))
@@ -83,11 +89,11 @@ export class BooksService {
     bookType?: BookType,
     sortType?: SortType,
     watched?: WatchedType | 'rated',
-  ): Promise<BookProgressDto[]> {
+  ): Promise<BookResponseDto[]> {
     this.logger.log('getMany');
 
-    const query = db
-      .select(BookProgressObject)
+    const query = this.db
+      .select(BookResponseObject)
       .from(books)
       .innerJoin(progress, eq(progress.bookId, books.id));
 
@@ -135,7 +141,7 @@ export class BooksService {
   ): Promise<BookResponseDto[]> {
     this.logger.log('getRandom');
 
-    const query = db.select(BookResponseObject).from(books);
+    const query = this.db.select(BookResponseObject).from(books);
 
     if (bookType) query.where(eq(books.type, bookType));
 
@@ -162,13 +168,27 @@ export class BooksService {
     }
   }
 
+  public async getGenres(bookType: BookType): Promise<string[]> {
+    this.logger.log('getGenres');
+
+    try {
+      const result = await this.db
+        .select({ genres: books.genres })
+        .from(books)
+        .where(eq(books.type, bookType));
+      return result[0].genres;
+    } catch (error) {
+      throw this.error.internalServerError(error);
+    }
+  }
+
   public async update(
     bookId: string,
     film: BookUpdateDto,
   ): Promise<BookResponseDto> {
     this.logger.log('update');
     try {
-      const result = await db
+      const result = await this.db
         .update(books)
         .set({ ...film })
         .where(eq(books.id, bookId))
@@ -185,7 +205,7 @@ export class BooksService {
   ): Promise<BookResponseDto[]> {
     this.logger.log('embeddingSearch');
     try {
-      const result = await db
+      const result = await this.db
         .select(BookResponseObject)
         .from(books)
         .orderBy(l2Distance(books.embedding, embedding))
@@ -202,11 +222,11 @@ export class BooksService {
   ): Promise<BookResponseDto[]> {
     this.logger.log('getNearest');
     try {
-      const embedding = await db
+      const embedding = await this.db
         .select()
         .from(books)
         .where(eq(books.id, bookId));
-      const result = await db
+      const result = await this.db
         .select(BookResponseObject)
         .from(books)
         .where(not(eq(books.id, bookId)))
@@ -222,7 +242,7 @@ export class BooksService {
     this.logger.log('delete');
 
     try {
-      const result = await db
+      const result = await this.db
         .delete(books)
         .where(eq(books.id, bookId))
         .returning(BookResponseObject);

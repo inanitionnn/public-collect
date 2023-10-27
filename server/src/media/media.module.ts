@@ -6,6 +6,7 @@ import { ParseModule } from 'src/parse';
 import { ComicsModule } from 'src/comics';
 import { BooksService } from 'src/books';
 import { SeriesModule } from 'src/series';
+import { MediaController } from './media.controller';
 
 @Module({
   imports: [
@@ -17,5 +18,6 @@ import { SeriesModule } from 'src/series';
     ParseModule,
   ],
   providers: [MediaService],
+  controllers: [MediaController],
 })
 export class MediaModule {}

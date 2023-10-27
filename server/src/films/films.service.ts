@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { FilmType, films } from './film.entity';
 import {
   FilmCreateDto,
@@ -9,7 +9,6 @@ import {
   FilmUpdateDto,
 } from './dto';
 import MyError from 'src/utils/errors';
-import db from 'src/utils/db';
 import { WatchedType, progress } from 'src/progress';
 import {
   eq,
@@ -25,17 +24,23 @@ import {
 } from 'drizzle-orm';
 import { SortType } from 'src/media';
 import { l2Distance } from 'pgvector/drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
 
 @Injectable()
 export class FilmsService {
   private readonly logger = new Logger(FilmsService.name);
   private readonly error = new MyError();
 
+  constructor(
+    @Inject(DrizzleAsyncProvider)
+    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+  ) {}
+
   public async create(film: FilmCreateDto): Promise<FilmResponseDto> {
     this.logger.log('create');
-
     try {
-      const result = await db
+      const result = await this.db
         .insert(films)
         .values(film)
         .returning(FilmResponseObject);
@@ -49,7 +54,7 @@ export class FilmsService {
     this.logger.log('search');
 
     try {
-      const result = await db
+      const result = await this.db
         .select(FilmResponseObject)
         .from(films)
         .where(
@@ -65,7 +70,7 @@ export class FilmsService {
     this.logger.log('getByid');
 
     try {
-      const result = await db
+      const result = await this.db
         .select(FilmProgressObject)
         .from(films)
         .where(eq(films.id, id))
@@ -82,11 +87,11 @@ export class FilmsService {
     filmType?: FilmType,
     sortType?: SortType,
     watched?: WatchedType | 'rated',
-  ): Promise<FilmProgressDto[]> {
+  ): Promise<FilmResponseDto[]> {
     this.logger.log('getMany');
 
-    const query = db
-      .select(FilmProgressObject)
+    const query = this.db
+      .select(FilmResponseObject)
       .from(films)
       .innerJoin(progress, eq(progress.filmId, films.id));
 
@@ -134,7 +139,7 @@ export class FilmsService {
   ): Promise<FilmResponseDto[]> {
     this.logger.log('getRandom');
 
-    const query = db.select(FilmResponseObject).from(films);
+    const query = this.db.select(FilmResponseObject).from(films);
 
     if (filmType) query.where(eq(films.type, filmType));
 
@@ -161,13 +166,27 @@ export class FilmsService {
     }
   }
 
+  public async getGenres(filmType: FilmType): Promise<string[]> {
+    this.logger.log('getGenres');
+
+    try {
+      const result = await this.db
+        .select({ genres: films.genres })
+        .from(films)
+        .where(eq(films.type, filmType));
+      return result[0].genres;
+    } catch (error) {
+      throw this.error.internalServerError(error);
+    }
+  }
+
   public async update(
     filmId: string,
     film: FilmUpdateDto,
   ): Promise<FilmResponseDto> {
     this.logger.log('update');
     try {
-      const result = await db
+      const result = await this.db
         .update(films)
         .set({ ...film })
         .where(eq(films.id, filmId))
@@ -184,7 +203,7 @@ export class FilmsService {
   ): Promise<FilmResponseDto[]> {
     this.logger.log('embeddingSearch');
     try {
-      const result = await db
+      const result = await this.db
         .select(FilmResponseObject)
         .from(films)
         .orderBy(l2Distance(films.embedding, embedding))
@@ -201,11 +220,11 @@ export class FilmsService {
   ): Promise<FilmResponseDto[]> {
     this.logger.log('getNearest');
     try {
-      const embedding = await db
+      const embedding = await this.db
         .select()
         .from(films)
         .where(eq(films.id, filmId));
-      const result = await db
+      const result = await this.db
         .select(FilmResponseObject)
         .from(films)
         .where(not(eq(films.id, filmId)))
@@ -221,7 +240,7 @@ export class FilmsService {
     this.logger.log('delete');
 
     try {
-      const result = await db
+      const result = await this.db
         .delete(films)
         .where(eq(films.id, filmId))
         .returning(FilmResponseObject);

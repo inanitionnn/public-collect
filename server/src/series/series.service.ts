@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import MyError from 'src/utils/errors';
 import {
   SerieCreateDto,
@@ -10,7 +10,6 @@ import {
 } from './dto';
 import { SerieType, series } from './series.entity';
 import { l2Distance } from 'pgvector/drizzle-orm';
-import db from 'src/utils/db';
 import {
   eq,
   sql,
@@ -26,19 +25,25 @@ import {
 import { WatchedType, progress } from 'src/progress';
 import { SeasonsService } from 'src/seasons';
 import { SortType } from 'src/media';
+import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 @Injectable()
 export class SeriesService {
   private readonly logger = new Logger(SeriesService.name);
   private readonly error = new MyError();
 
-  constructor(private readonly seasonsService: SeasonsService) {}
+  constructor(
+    @Inject(DrizzleAsyncProvider)
+    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+    private readonly seasonsService: SeasonsService,
+  ) {}
 
   public async create(dto: SerieCreateDto): Promise<SerieResponseDto> {
     this.logger.log('create');
     const { seasons: _, ...other } = dto;
     try {
-      const result = await db
+      const result = await this.db
         .insert(series)
         .values(other)
         .returning(SerieResponseObject);
@@ -56,7 +61,7 @@ export class SeriesService {
   public async search(query: string): Promise<SerieResponseDto[]> {
     this.logger.log('search');
     try {
-      const result = await db
+      const result = await this.db
         .select(SerieResponseObject)
         .from(series)
         .where(
@@ -72,7 +77,7 @@ export class SeriesService {
     this.logger.log('getByid');
     const seasons = await this.seasonsService.getBySeriesId(id);
     try {
-      const result = await db
+      const result = await this.db
         .select(SerieProgressObject)
         .from(series)
         .where(eq(series.id, id))
@@ -95,7 +100,7 @@ export class SeriesService {
   ): Promise<SerieResponseDto[]> {
     this.logger.log('getMany');
 
-    const query = db
+    const query = this.db
       .select(SerieResponseObject)
       .from(series)
       .innerJoin(progress, eq(progress.serieId, series.id));
@@ -144,7 +149,7 @@ export class SeriesService {
   ): Promise<SerieResponseDto[]> {
     this.logger.log('getRandom');
 
-    const query = db.select(SerieResponseObject).from(series);
+    const query = this.db.select(SerieResponseObject).from(series);
 
     if (serieType) query.where(eq(series.type, serieType));
 
@@ -172,6 +177,20 @@ export class SeriesService {
     }
   }
 
+  public async getGenres(serieType: SerieType): Promise<string[]> {
+    this.logger.log('getGenres');
+
+    try {
+      const result = await this.db
+        .select({ genres: series.genres })
+        .from(series)
+        .where(eq(series.type, serieType));
+      return result[0].genres;
+    } catch (error) {
+      throw this.error.internalServerError(error);
+    }
+  }
+
   public async update(
     serieId: string,
     dto: SerieUpdateDto,
@@ -181,7 +200,7 @@ export class SeriesService {
     const { seasons: newSeasons, ...otherDto } = dto;
     const seasons = await this.seasonsService.update(serieId, newSeasons);
     try {
-      const result = await db
+      const result = await this.db
         .update(series)
         .set(otherDto)
         .where(eq(series.id, serieId))
@@ -198,7 +217,7 @@ export class SeriesService {
   ): Promise<SerieResponseDto[]> {
     this.logger.log('embeddingSearch');
     try {
-      const result = await db
+      const result = await this.db
         .select(SerieResponseObject)
         .from(series)
         .orderBy(l2Distance(series.embedding, embedding))
@@ -215,11 +234,11 @@ export class SeriesService {
   ): Promise<SerieResponseDto[]> {
     this.logger.log('getNearest');
     try {
-      const embedding = await db
+      const embedding = await this.db
         .select()
         .from(series)
         .where(eq(series.id, serieId));
-      const result = await db
+      const result = await this.db
         .select(SerieResponseObject)
         .from(series)
         .where(not(eq(series.id, serieId)))
@@ -235,7 +254,7 @@ export class SeriesService {
     this.logger.log('delete');
     const seasons = await this.seasonsService.deleteBySeriesId(serieId);
     try {
-      const result = await db
+      const result = await this.db
         .delete(series)
         .where(eq(series.id, serieId))
         .returning(SerieResponseObject);

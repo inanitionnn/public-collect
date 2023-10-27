@@ -9,7 +9,7 @@ import {
   Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { BookEnum, BookType } from '../book.entity';
+import { BookType, bookEnum } from '../book.entity';
 
 export class BookDto {
   @ApiProperty()
@@ -18,7 +18,7 @@ export class BookDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsIn(BookEnum.enumValues)
+  @IsIn(bookEnum.enumValues)
   type?: BookType;
 
   @ApiProperty()

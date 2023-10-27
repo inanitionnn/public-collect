@@ -8,7 +8,7 @@ import {
   IsUUID,
   Length,
 } from 'class-validator';
-import { SerieEnum, SerieType, series } from '../series.entity';
+import { serieEnum, SerieType, series } from '../series.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { SerieDto } from './serie.dto';
 import { SeasonResponseDto } from 'src/seasons';
@@ -35,7 +35,7 @@ export class SerieResponseDto implements Omit<SerieDto, 'embedding'> {
   id: string;
 
   @ApiProperty()
-  @IsIn(SerieEnum.enumValues)
+  @IsIn(serieEnum.enumValues)
   type: SerieType;
 
   @ApiProperty()

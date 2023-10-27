@@ -1,45 +1,19 @@
-import { z } from 'zod';
-import ZodValidation from './validation';
+import { validateUtil } from './validation';
+import { AppEnvironmentVariables } from './variables';
 
 export default () => {
-  const configs = {
-    url: {
-      value: process.env.URL,
-      zod: z.string().min(1),
-    },
-    port: {
-      value: +process.env.PORT,
-      zod: z.number().positive(),
-    },
-    imageHeight: {
-      value: +process.env.IMAGE_HEIGHT,
-      zod: z.number().positive(),
-    },
-    imageWigth: {
-      value: +process.env.IMAGE_WIDTH,
-      zod: z.number().positive(),
-    },
-    cacheSeconds: {
-      value: +process.env.CACHE_SECONDS,
-      zod: z.number().positive(),
-    },
-    googleSeachId: {
-      value: process.env.GOOGLE_SEARCH_ID,
-      zod: z.string().min(1),
-    },
-    googleApiKey: {
-      value: process.env.GOOGLE_API_KEY,
-      zod: z.string().min(1),
-    },
-    openAiKey: {
-      value: process.env.OPEN_AI_KEY,
-      zod: z.string().min(1),
-    },
-    dbUrl: {
-      value: process.env.DB_URL,
-      zod: z.string().min(1).url(),
-    },
-  };
+  validateUtil(process.env, AppEnvironmentVariables);
 
-  return ZodValidation.validate(configs);
+  const result: AppEnvironmentVariables = {
+    URL: process.env.URL,
+    PORT: Number(process.env.PORT),
+    IMAGE_HEIGHT: Number(process.env.IMAGE_HEIGHT),
+    IMAGE_WIDTH: Number(process.env.IMAGE_WIDTH),
+    CACHE_SECONDS: Number(process.env.CACHE_SECONDS),
+    GOOGLE_SEARCH_ID: process.env.GOOGLE_SEARCH_ID,
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+    OPEN_AI_KEY: process.env.OPEN_AI_KEY,
+    DB_URL: process.env.DB_URL,
+  };
+  return result;
 };

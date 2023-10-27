@@ -1,6 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import MyError from 'src/utils/errors';
-import db from 'src/utils/db';
 import {
   eq,
   sql,
@@ -26,17 +25,24 @@ import {
 import { WatchedType, progress } from 'src/progress';
 
 import { SortType } from 'src/media';
+import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 @Injectable()
 export class ComicsService {
   private readonly logger = new Logger(ComicsService.name);
   private readonly error = new MyError();
 
+  constructor(
+    @Inject(DrizzleAsyncProvider)
+    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+  ) {}
+
   public async create(film: ComicCreateDto): Promise<ComicResponseDto> {
     this.logger.log('create');
 
     try {
-      const result = await db
+      const result = await this.db
         .insert(comics)
         .values(film)
         .returning(ComicResponseObject);
@@ -50,7 +56,7 @@ export class ComicsService {
     this.logger.log('search');
 
     try {
-      const result = await db
+      const result = await this.db
         .select(ComicResponseObject)
         .from(comics)
         .where(
@@ -66,7 +72,7 @@ export class ComicsService {
     this.logger.log('getByid');
 
     try {
-      const result = await db
+      const result = await this.db
         .select(ComicProgressObject)
         .from(comics)
         .where(eq(comics.id, id))
@@ -83,11 +89,11 @@ export class ComicsService {
     comicType?: ComicType,
     sortType?: SortType,
     watched?: WatchedType | 'rated',
-  ): Promise<ComicProgressDto[]> {
+  ): Promise<ComicResponseDto[]> {
     this.logger.log('getMany');
 
-    const query = db
-      .select(ComicProgressObject)
+    const query = this.db
+      .select(ComicResponseObject)
       .from(comics)
       .innerJoin(progress, eq(progress.comicId, comics.id));
 
@@ -135,7 +141,7 @@ export class ComicsService {
   ): Promise<ComicResponseDto[]> {
     this.logger.log('getRandom');
 
-    const query = db.select(ComicResponseObject).from(comics);
+    const query = this.db.select(ComicResponseObject).from(comics);
 
     if (comicType) query.where(eq(comics.type, comicType));
 
@@ -163,13 +169,27 @@ export class ComicsService {
     }
   }
 
+  public async getGenres(comicType: ComicType): Promise<string[]> {
+    this.logger.log('getGenres');
+
+    try {
+      const result = await this.db
+        .select({ genres: comics.genres })
+        .from(comics)
+        .where(eq(comics.type, comicType));
+      return result[0].genres;
+    } catch (error) {
+      throw this.error.internalServerError(error);
+    }
+  }
+
   public async update(
     comicId: string,
     film: ComicUpdateDto,
   ): Promise<ComicResponseDto> {
     this.logger.log('update');
     try {
-      const result = await db
+      const result = await this.db
         .update(comics)
         .set({ ...film })
         .where(eq(comics.id, comicId))
@@ -186,7 +206,7 @@ export class ComicsService {
   ): Promise<ComicResponseDto[]> {
     this.logger.log('embeddingSearch');
     try {
-      const result = await db
+      const result = await this.db
         .select(ComicResponseObject)
         .from(comics)
         .orderBy(l2Distance(comics.embedding, embedding))
@@ -203,11 +223,11 @@ export class ComicsService {
   ): Promise<ComicResponseDto[]> {
     this.logger.log('getNearest');
     try {
-      const embedding = await db
+      const embedding = await this.db
         .select()
         .from(comics)
         .where(eq(comics.id, comicId));
-      const result = await db
+      const result = await this.db
         .select(ComicResponseObject)
         .from(comics)
         .where(not(eq(comics.id, comicId)))
@@ -223,7 +243,7 @@ export class ComicsService {
     this.logger.log('delete');
 
     try {
-      const result = await db
+      const result = await this.db
         .delete(comics)
         .where(eq(comics.id, comicId))
         .returning(ComicResponseObject);

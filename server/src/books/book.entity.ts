@@ -13,13 +13,13 @@ import { collectionsToMedia } from '../collections';
 import { progress } from '../progress';
 import { orderToMedia } from 'src/orders';
 
-export const BookEnum = pgEnum('bookType', ['fiction', 'nonFiction']);
+export const bookEnum = pgEnum('bookType', ['fiction', 'nonFiction']);
 
 export const books = pgTable(
   'books',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    type: BookEnum('bookType').default('nonFiction').notNull(),
+    type: bookEnum('bookType').default('nonFiction').notNull(),
     title: varchar('title', { length: 256 }).notNull(),
     year: smallint('year'),
     country: varchar('country', { length: 256 }).array(),
@@ -55,7 +55,7 @@ export const booksRelations = relations(books, ({ many, one }) => ({
   collectionsToBooks: many(collectionsToMedia),
 }));
 
-export type BookType = (typeof BookEnum.enumValues)[number];
+export type BookType = (typeof bookEnum.enumValues)[number];
 
 // export type BookSelect = InferSelectModel<typeof books>;
 // export type BookInsert = InferInsertModel<typeof books>;

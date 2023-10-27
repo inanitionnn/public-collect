@@ -9,7 +9,7 @@ import {
   Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ComicEnum, ComicType } from '../comic.entity';
+import { comicEnum, ComicType } from '../comic.entity';
 
 export class ComicDto {
   @ApiProperty()
@@ -18,7 +18,7 @@ export class ComicDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsIn(ComicEnum.enumValues)
+  @IsIn(comicEnum.enumValues)
   type?: ComicType;
 
   @ApiProperty()

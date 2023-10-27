@@ -9,7 +9,7 @@ import {
   Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { BookEnum, BookType, books } from '../book.entity';
+import { bookEnum, BookType, books } from '../book.entity';
 import { BookDto } from './book.dto';
 
 export const BookResponseObject = {
@@ -33,7 +33,7 @@ export class BookResponseDto implements Omit<BookDto, 'embedding'> {
   id: string;
 
   @ApiProperty()
-  @IsIn(BookEnum.enumValues)
+  @IsIn(bookEnum.enumValues)
   type: BookType;
 
   @ApiProperty()

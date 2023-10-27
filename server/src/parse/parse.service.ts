@@ -1,12 +1,24 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { GptService } from './services/gpt.service';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import MyError from 'src/utils/errors';
-import { z } from 'zod';
-import { GetTitleRequest, GetTitleResponse, GetFieldsRequest } from './dto';
-import { getImagesRequest } from './dto/getImages.request';
-import { ImagesService } from './services/images.service';
+import {
+  TitleParseDto,
+  TitleResponseDto,
+  ImagesParseDto,
+  ImagesResponseDto,
+  WikiParseDto,
+  WikiResponseDto,
+  SearchParseDto,
+  SearchResponseDto,
+  FieldsParseDto,
+} from './dto';
+import {
+  GptService,
+  ImagesService,
+  SearchService,
+  WikiService,
+} from './services';
 
 @Injectable()
 export class ParseService {
@@ -17,29 +29,21 @@ export class ParseService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly gptService: GptService,
     private readonly imagesService: ImagesService,
+    private readonly searchService: SearchService,
+    private readonly wikiService: WikiService,
   ) {}
 
   //#region Images
 
-  public async getImages(dto: getImagesRequest): Promise<Array<string>> {
+  public async getImages(dto: ImagesParseDto): Promise<ImagesResponseDto> {
     this.logger.log('getImages');
-    // Zod
-    try {
-      z.object({
-        mediaType: z.enum(['film', 'serie', 'comic', 'book']),
-        count: z.number(),
-        title: z.string(),
-      }).parse(dto);
-    } catch (error) {
-      this.error.badRequest(error);
-    }
-    const { count, mediaType, title } = dto;
+    const { count, mediaType, query } = dto;
     // Cache
-    const CACHE_KEY = `getImages:${mediaType}:${count}:${title}`;
-    const cache: string[] = await this.cacheManager.get(CACHE_KEY);
+    const CACHE_KEY = `getImages:${mediaType}:${count}:${query}`;
+    const cache: ImagesResponseDto = await this.cacheManager.get(CACHE_KEY);
     if (cache) return cache;
     // Query
-    const result = await this.imagesService.imageParse(mediaType, title, count);
+    const result = await this.imagesService.imageParse(dto);
     // Cache
     await this.cacheManager.set(CACHE_KEY, result);
     return result;
@@ -50,59 +54,30 @@ export class ParseService {
   //#region Gpt
 
   // Get title and year by query
-  public async getTitle(dto: GetTitleRequest): Promise<GetTitleResponse> {
+  public async getTitle(dto: TitleParseDto): Promise<TitleResponseDto> {
     this.logger.log('getTitle');
-    // Zod
-    try {
-      z.object({
-        mediaType: z.enum(['film', 'serie', 'comic', 'book']),
-        query: z.string().min(1),
-      }).parse(dto);
-    } catch (error) {
-      this.error.badRequest(error);
-    }
-    const { mediaType, query } = dto;
     // Cache
-    const CACHE_KEY = `getTitle:${mediaType}:${query}`;
-    const cache: GetTitleResponse = await this.cacheManager.get(CACHE_KEY);
+    const CACHE_KEY = `getTitle:${dto.mediaType}:${dto.query}`;
+    const cache: TitleResponseDto = await this.cacheManager.get(CACHE_KEY);
     if (cache) return cache;
     // Query
-    const result = await this.gptService.getTitle(mediaType, query);
+    const result = await this.gptService.getTitle(dto);
     // Cache
     await this.cacheManager.set(CACHE_KEY, result);
     return result;
   }
 
   // Get embedding array by query
-  public async getEmbedding(query: string): Promise<Array<number>> {
+  public async getEmbedding(query: string): Promise<number[]> {
     this.logger.log('getEmbedding');
-    // Zod
-    try {
-      z.string().min(1).parse(query);
-    } catch (error) {
-      throw this.error.badRequest(error);
-    }
-    // Query
     const result = await this.gptService.getEmbedding(query);
     return result;
   }
 
   // Fills in empty fields of media by keys and query
-  public async getFields(dto: GetFieldsRequest): Promise<any> {
-    this.logger.log('getFields');
-    // Zod
-    try {
-      z.object({
-        mediaType: z.enum(['film', 'serie', 'comic', 'book']),
-        title: z.string().min(1),
-        keys: z.array(z.string()).optional(),
-      }).parse(dto);
-    } catch (error) {
-      this.error.badRequest(error);
-    }
-    const { mediaType, title, keys } = dto;
-    // Query
-    const result = await this.gptService.getFields(mediaType, title, keys);
+  public async fieldsParse(dto: FieldsParseDto): Promise<unknown> {
+    this.logger.log('fieldsParse');
+    const result = await this.gptService.getFields(dto);
     return result;
   }
 
@@ -110,52 +85,26 @@ export class ParseService {
 
   //#region Wiki
 
-  // public async wiki(dto: WikiParseRequest): Promise<WikiParseResponse> {
-  //   this.log?.info("wikiParse");
+  public async wikiParse(dto: WikiParseDto): Promise<WikiResponseDto> {
+    this.logger.log('wikiParse');
+    const CACHE_KEY = `wikiParse:${dto.mediaType}:${dto.link}`;
+    const cache: WikiResponseDto = await this.cacheManager.get(CACHE_KEY);
+    if (cache) return cache;
 
-  //   try {
-  //     console.log(dto);
-  //     z.object({
-  //       mediaType: z.enum(["film", "serie", "comic", "book"]),
-  //       link: z.string().url(),
-  //     }).parse(dto);
-  //   } catch (error) {
-  //     throw this.error.BadRequest("wikiParse", error);
-  //   }
+    const result = await this.wikiService.wikiParse(dto);
+    await this.cacheManager.set(CACHE_KEY, result);
+    return result;
+  }
 
-  //   const { mediaType, link } = dto;
-
-  //   const CACHE_KEY = `wikiParse:${mediaType}:${link}`;
-  //   const cache = await this.cache.check(CACHE_KEY);
-  //   if (cache) return cache;
-  //   const result = await this.parse.wikiParse(mediaType, link);
-  //   await this.cache.save(CACHE_KEY, result);
-  //   return result;
-  // }
-
-  // public async search(
-  //   dto: SearchRequest
-  // ): Promise<Array<WikiSearchResponse>> {
-  //   this.log?.info("wikiSearch");
-
-  //   try {
-  //     z.object({
-  //       count: z.number(),
-  //       query: z.string(),
-  //     }).parse(dto);
-  //   } catch (error) {
-  //     throw this.error.BadRequest("wikiSearch", error);
-  //   }
-
-  //   const { query, count } = dto;
-
-  //   const CACHE_KEY = `wikiSearch:${query}:${count}`;
-  //   const cache = await this.cache.check(CACHE_KEY);
-  //   if (cache) return cache;
-  //   const result = await this.search.searchByQuery(query, count);
-  //   await this.cache.save(CACHE_KEY, result);
-  //   return result;
-  // }
+  public async wikiSearch(dto: SearchParseDto): Promise<SearchResponseDto[]> {
+    this.logger.log('wikiSearch');
+    const CACHE_KEY = `wikiSearch:${dto.query}:${dto.count}`;
+    const cache: SearchResponseDto[] = await this.cacheManager.get(CACHE_KEY);
+    if (cache) return cache;
+    const result = await this.searchService.searchByQuery(dto);
+    await this.cacheManager.set(CACHE_KEY, result);
+    return result;
+  }
 
   //#endregion Wiki
 }

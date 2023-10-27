@@ -1,41 +1,20 @@
-import { Logger } from '@nestjs/common';
-import { Schema, z } from 'zod';
+import { plainToClass } from 'class-transformer';
+import { validateSync } from 'class-validator';
+import { ClassConstructor } from 'class-transformer/types/interfaces';
 
-interface ConfigProps {
-  value: unknown;
-  zod: Schema;
-}
+export function validateUtil(
+  config: Record<string, unknown>,
+  envVariablesClass: ClassConstructor<any>,
+) {
+  const validatedConfig = plainToClass(envVariablesClass, config, {
+    enableImplicitConversion: true,
+  });
+  const errors = validateSync(validatedConfig, {
+    skipMissingProperties: false,
+  });
 
-type ZodConfig<T> = Record<keyof T, ConfigProps>;
-
-export default class ZodValidation {
-  static validate<T>(config: ZodConfig<T>): T {
-    const schemaObj = ZodValidation.extractByPropName(config, 'zod');
-    const schema = z.object(schemaObj);
-    const values = ZodValidation.extractByPropName(config, 'value');
-    try {
-      schema.parse(values);
-    } catch (errors) {
-      const logger = new Logger('Config');
-      logger.error(
-        `${errors.errors[0].path[0].toUpperCase()}: ${
-          errors.errors[0].message
-        }`,
-      );
-      throw new Error(`Config validation failed`);
-    }
-    return values;
+  if (errors.length > 0) {
+    throw new Error(errors.toString());
   }
-
-  static extractByPropName<T>(
-    config: ZodConfig<T>,
-    propName: keyof ConfigProps,
-  ) {
-    const arr: any[] = Object.keys(config).map((key) => {
-      return {
-        [key]: config[key][propName],
-      };
-    });
-    return Object.assign({}, ...arr);
-  }
+  return validatedConfig;
 }

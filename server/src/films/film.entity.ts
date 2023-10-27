@@ -13,13 +13,13 @@ import { orderToMedia } from '../orders';
 import { collectionsToMedia } from '../collections';
 import { progress } from '../progress';
 
-export const FilmEnum = pgEnum('filmType', ['movie', 'anime', 'animated']);
+export const filmEnum = pgEnum('filmType', ['movie', 'anime', 'animated']);
 
 export const films = pgTable(
   'films',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    type: FilmEnum('filmType').default('movie').notNull(),
+    type: filmEnum('filmType').default('movie').notNull(),
     title: varchar('title', { length: 256 }).notNull(),
     year: smallint('year'),
     country: varchar('country', { length: 256 }).array(),
@@ -58,7 +58,7 @@ export const filmsRelations = relations(films, ({ many, one }) => ({
   collectionsToFilms: many(collectionsToMedia),
 }));
 
-export type FilmType = (typeof FilmEnum.enumValues)[number];
+export type FilmType = (typeof filmEnum.enumValues)[number];
 
 // export type FilmSelect = InferSelectModel<typeof films>;
 

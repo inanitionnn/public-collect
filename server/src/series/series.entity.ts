@@ -14,13 +14,13 @@ import { seasons } from '../seasons';
 import { collectionsToMedia } from '../collections';
 import { progress } from '../progress';
 
-export const SerieEnum = pgEnum('serieType', ['tv', 'anime', 'animated']);
+export const serieEnum = pgEnum('serieType', ['tv', 'anime', 'animated']);
 
 export const series = pgTable(
   'series',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    type: SerieEnum('serieType').default('tv').notNull(),
+    type: serieEnum('serieType').default('tv').notNull(),
     title: varchar('title', { length: 256 }).notNull(),
     startYear: smallint('start_year'),
     endYear: smallint('end_year'),
@@ -58,7 +58,7 @@ export const seriesRelations = relations(series, ({ many, one }) => ({
   seasons: many(seasons),
 }));
 
-export type SerieType = (typeof SerieEnum.enumValues)[number];
+export type SerieType = (typeof serieEnum.enumValues)[number];
 
 // export type SerieSelect = InferSelectModel<typeof series>;
 // export type SerieInsert = InferInsertModel<typeof series>;

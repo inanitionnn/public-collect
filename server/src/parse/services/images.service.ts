@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as GoogleImages from 'google-images';
 import { MediaType } from 'src/media/types';
+import { ImagesParseDto, ImagesResponseDto } from '../dto';
 
 type ImageType = {
   url: string;
@@ -60,9 +61,9 @@ export class ImagesService {
     return resImages;
   }
 
-  public async imageParse(mediaType: MediaType, query: string, count: number) {
+  public async imageParse(dto: ImagesParseDto): Promise<ImagesResponseDto> {
     this.logger.log('imageParse');
-
+    const { count, mediaType, query } = dto;
     // Google connect
     const engineId: string = process.env.GOOGLE_SEARCH_ID;
     const apiKey: string = process.env.GOOGLE_API_KEY;
@@ -91,6 +92,6 @@ export class ImagesService {
 
     const links = await this.loadImages(fullQuery, count, 1, client);
 
-    return links;
+    return { links };
   }
 }

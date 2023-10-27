@@ -8,14 +8,14 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { FilmEnum, FilmType } from '../film.entity';
+import { FilmType, filmEnum } from '../film.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FilmCreateDto implements Omit<FilmDto, 'id'> {
-  @ApiProperty()
-  @IsOptional()
-  @IsIn(FilmEnum.enumValues)
-  type?: FilmType;
+  // @ApiProperty()
+  // @IsOptional()
+  // @IsIn(filmEnum.enumValues)
+  // type?: FilmType;
 
   @ApiProperty()
   @IsString()

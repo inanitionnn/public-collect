@@ -1,6 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import MyError from 'src/utils/errors';
-import db from 'src/utils/db';
 import { seasons } from './seasons.entity';
 import {
   SeasonCreateDto,
@@ -9,11 +8,18 @@ import {
   SeasonUpdateDto,
 } from './dto';
 import { and, eq, inArray } from 'drizzle-orm';
+import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 @Injectable()
 export class SeasonsService {
   private readonly logger = new Logger(SeasonsService.name);
   private readonly error = new MyError();
+
+  constructor(
+    @Inject(DrizzleAsyncProvider)
+    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+  ) {}
 
   public async create(
     seriesId: string,
@@ -26,7 +32,7 @@ export class SeasonsService {
     });
 
     try {
-      const result = await db
+      const result = await this.db
         .insert(seasons)
         .values(insertSeasons)
         .returning(SeasonResponseObject);
@@ -39,7 +45,7 @@ export class SeasonsService {
   public async getBySeriesId(seriesId: string): Promise<SeasonResponseDto[]> {
     this.logger.log('get');
     try {
-      const result = await db
+      const result = await this.db
         .select(SeasonResponseObject)
         .from(seasons)
         .where(eq(seasons.seriesId, seriesId));
@@ -86,7 +92,7 @@ export class SeasonsService {
     );
     try {
       for (const season of updateSeasons) {
-        const result = await db
+        const result = await this.db
           .update(seasons)
           .set(season)
           .where(and(eq(seasons.seriesId, serieId), eq(seasons.id, season.id)));
@@ -105,7 +111,7 @@ export class SeasonsService {
     this.logger.log('delete');
 
     try {
-      const result = await db
+      const result = await this.db
         .delete(seasons)
         .where(
           and(eq(seasons.seriesId, seriesId), inArray(seasons.id, seasonsIds)),
@@ -122,7 +128,7 @@ export class SeasonsService {
   ): Promise<SeasonResponseDto[]> {
     this.logger.log('update');
     try {
-      const result = await db
+      const result = await this.db
         .delete(seasons)
         .where(eq(seasons.seriesId, seriesId));
       return result;

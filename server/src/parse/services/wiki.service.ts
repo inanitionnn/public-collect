@@ -4,13 +4,13 @@ import wtf from 'wtf_wikipedia';
 import wtfSummary from 'wtf-plugin-summary';
 import wtfClassify from 'wtf-plugin-classify';
 import { Keywords } from '../constants';
-import { FilmSelect, FilmType } from 'src/films';
-import { SerieSelect, SerieType } from 'src/series';
-import { BookSelect, BookType } from 'src/books';
-import { ComicSelect, ComicType } from 'src/comics';
+import { FilmType, FilmWikiDto } from 'src/films';
+import { SerieType, SerieWikiDto } from 'src/series';
+import { BookType, BookWikiDto } from 'src/books';
+import { ComicType, ComicWikiDto } from 'src/comics';
 import { MediaType } from 'src/media/types';
-import { WikiResponse } from '../dto/wiki.response';
-import { SeasonSelect } from 'src/seasons';
+import { SeasonWikiDto } from 'src/seasons';
+import { WikiParseDto, WikiResponseDto } from '../dto';
 
 wtf.extend(wtfSummary);
 wtf.extend(wtfClassify);
@@ -301,9 +301,7 @@ export class WikiService {
 
   //#region Seasons
 
-  private async getSeasons(
-    data: any,
-  ): Promise<Array<Pick<SeasonSelect, 'episodes' | 'title' | 'number'>>> {
+  private async getSeasons(data: any): Promise<SeasonWikiDto[]> {
     const urlEncodeTitle = (title: string) => {
       const encodedTitle = title.replace(/ /g, '_');
       return encodeURIComponent(encodedTitle);
@@ -387,12 +385,9 @@ export class WikiService {
 
   //#region Parse
 
-  public async wikiParse(
-    mediaType: MediaType,
-    link: string,
-  ): Promise<WikiResponse> {
+  public async wikiParse(dto: WikiParseDto): Promise<WikiResponseDto> {
     this.logger.log('wikiParse');
-
+    const { link, mediaType } = dto;
     this.isEngWikiLinkCheck(link);
 
     const data: any | null = await wtf.fetch(link);
@@ -432,8 +427,8 @@ export class WikiService {
       case 'film': {
         const type = this.getFilmType(types);
 
-        const result: Omit<FilmSelect, 'id' | 'embedding'> = {
-          type,
+        const result: FilmWikiDto = {
+          // type,
           title,
           year: startYear,
           country: type === 'anime' && !country.length ? ['Japan'] : country,
@@ -456,9 +451,7 @@ export class WikiService {
 
         const seasons = await this.getSeasons(data);
 
-        const result: Omit<SerieSelect, 'embedding' | 'id'> & {
-          seasons: Array<Pick<SeasonSelect, 'title' | 'episodes' | 'number'>>;
-        } = {
+        const result: SerieWikiDto = {
           type,
           title,
           startYear,
@@ -479,7 +472,7 @@ export class WikiService {
       case 'comic': {
         const type = this.getComicsType(types);
 
-        const result: Omit<ComicSelect, 'id' | 'embedding'> = {
+        const result: ComicWikiDto = {
           type,
           title,
           endYear,
@@ -499,7 +492,7 @@ export class WikiService {
       case 'book': {
         const type = this.getBookType(types);
 
-        const result: Omit<BookSelect, 'id' | 'embedding'> = {
+        const result: BookWikiDto = {
           type,
           title,
           year: startYear,

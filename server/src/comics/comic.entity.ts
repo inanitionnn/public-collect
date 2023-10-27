@@ -13,13 +13,13 @@ import { orderToMedia } from '../orders';
 import { collectionsToMedia } from '../collections';
 import { progress } from '../progress';
 
-export const ComicEnum = pgEnum('comicType', ['manga', 'comic']);
+export const comicEnum = pgEnum('comicType', ['manga', 'comic']);
 
 export const comics = pgTable(
   'comics',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    type: ComicEnum('comicType').default('comic').notNull(),
+    type: comicEnum('comicType').default('comic').notNull(),
     title: varchar('title', { length: 256 }).notNull(),
     startYear: smallint('start_year'),
     endYear: smallint('end_year'),
@@ -56,7 +56,7 @@ export const comicsRelations = relations(comics, ({ many, one }) => ({
   collectionsToComics: many(collectionsToMedia),
 }));
 
-export type ComicType = (typeof ComicEnum.enumValues)[number];
+export type ComicType = (typeof comicEnum.enumValues)[number];
 
 // export type ComicSelect = InferSelectModel<typeof comics>;
 

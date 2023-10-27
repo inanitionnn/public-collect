@@ -2,12 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { load } from 'cheerio';
 import MyError from 'src/utils/errors';
-import { SearchResponse } from '../dto';
+import { SearchParseDto, SearchResponseDto } from '../dto';
 
 @Injectable()
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
   private readonly error = new MyError();
+
   //#region Private
 
   // Throw error if query is not english
@@ -42,11 +43,10 @@ export class SearchService {
 
   // Takes results of Wikipedia search results
   public async searchByQuery(
-    query: string,
-    count: number,
-  ): Promise<Array<SearchResponse>> {
+    dto: SearchParseDto,
+  ): Promise<SearchResponseDto[]> {
     this.logger.log(`searchByQuery`);
-
+    const { count, query } = dto;
     // this.isEngTextCheck(query);
 
     const url = `https://en.wikipedia.org/w/index.php?title=Special:Search&limit=20&offset=0&ns0=1&search=${encodeURIComponent(

@@ -9,11 +9,12 @@ import {
   IsUUID,
   Length,
 } from 'class-validator';
-import { FilmEnum, FilmType, films } from '../film.entity';
+import { filmEnum, FilmType, films } from '../film.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { DrizzleSchema } from 'src/drizzle';
 
 export const FilmResponseObject = {
-  id: films.id,
+  id: DrizzleSchema.films.films.id,
   type: films.type,
   title: films.title,
   year: films.year,
@@ -35,9 +36,9 @@ export class FilmResponseDto implements Omit<FilmDto, 'embedding'> {
   @IsUUID()
   id: string;
 
-  @ApiProperty()
-  @IsIn(FilmEnum.enumValues)
-  type: FilmType;
+  // @ApiProperty()
+  // @IsIn(filmEnum.enumValues)
+  // type: FilmType;
 
   @ApiProperty()
   @IsString()
