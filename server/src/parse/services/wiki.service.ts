@@ -1,24 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import MyError from 'src/utils/errors';
-import wtf from 'wtf_wikipedia';
-import wtfSummary from 'wtf-plugin-summary';
-import wtfClassify from 'wtf-plugin-classify';
 import { Keywords } from '../constants';
 import { FilmType, FilmWikiDto } from 'src/films';
 import { SerieType, SerieWikiDto } from 'src/series';
 import { BookType, BookWikiDto } from 'src/books';
 import { ComicType, ComicWikiDto } from 'src/comics';
-import { MediaType } from 'src/media/types';
 import { SeasonWikiDto } from 'src/seasons';
 import { WikiParseDto, WikiResponseDto } from '../dto';
-
-wtf.extend(wtfSummary);
-wtf.extend(wtfClassify);
+const wtf = require('wtf_wikipedia');
+wtf.extend(require('wtf-plugin-summary'));
+wtf.extend(require('wtf-plugin-classify'));
 
 @Injectable()
 export class WikiService {
   private readonly logger = new Logger(WikiService.name);
   private readonly error = new MyError();
+  constructor() {}
   //#region Description
 
   private async getDescription(data: any): Promise<string | null> {
@@ -428,7 +425,7 @@ export class WikiService {
         const type = this.getFilmType(types);
 
         const result: FilmWikiDto = {
-          // type,
+          type,
           title,
           year: startYear,
           country: type === 'anime' && !country.length ? ['Japan'] : country,

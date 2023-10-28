@@ -8,13 +8,13 @@ import {
   Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { bookEnum, BookType } from '../book.entity';
+import { BookEnum, BookType } from '../types';
 import { BookDto } from './book.dto';
 
 export class BookUpdateDto implements Omit<BookDto, 'id'> {
   @ApiProperty()
   @IsOptional()
-  @IsIn(bookEnum.enumValues)
+  @IsIn(Object.values(BookEnum))
   type?: BookType;
 
   @ApiProperty()

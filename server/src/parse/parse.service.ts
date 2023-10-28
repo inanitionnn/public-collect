@@ -19,6 +19,9 @@ import {
   SearchService,
   WikiService,
 } from './services';
+import { validate } from 'class-validator';
+import { plainToClass, plainToInstance } from 'class-transformer';
+import { validation } from 'src/utils/validation';
 
 @Injectable()
 export class ParseService {
@@ -37,9 +40,9 @@ export class ParseService {
 
   public async getImages(dto: ImagesParseDto): Promise<ImagesResponseDto> {
     this.logger.log('getImages');
-    const { count, mediaType, query } = dto;
+    await validation(ImagesParseDto, dto);
     // Cache
-    const CACHE_KEY = `getImages:${mediaType}:${count}:${query}`;
+    const CACHE_KEY = `getImages:${dto.mediaType}:${dto.count}:${dto.query}`;
     const cache: ImagesResponseDto = await this.cacheManager.get(CACHE_KEY);
     if (cache) return cache;
     // Query
@@ -56,6 +59,7 @@ export class ParseService {
   // Get title and year by query
   public async getTitle(dto: TitleParseDto): Promise<TitleResponseDto> {
     this.logger.log('getTitle');
+    await validation(TitleParseDto, dto);
     // Cache
     const CACHE_KEY = `getTitle:${dto.mediaType}:${dto.query}`;
     const cache: TitleResponseDto = await this.cacheManager.get(CACHE_KEY);
@@ -70,6 +74,7 @@ export class ParseService {
   // Get embedding array by query
   public async getEmbedding(query: string): Promise<number[]> {
     this.logger.log('getEmbedding');
+
     const result = await this.gptService.getEmbedding(query);
     return result;
   }
@@ -77,6 +82,7 @@ export class ParseService {
   // Fills in empty fields of media by keys and query
   public async fieldsParse(dto: FieldsParseDto): Promise<unknown> {
     this.logger.log('fieldsParse');
+    await validation(FieldsParseDto, dto);
     const result = await this.gptService.getFields(dto);
     return result;
   }
@@ -87,6 +93,7 @@ export class ParseService {
 
   public async wikiParse(dto: WikiParseDto): Promise<WikiResponseDto> {
     this.logger.log('wikiParse');
+    await validation(WikiParseDto, dto);
     const CACHE_KEY = `wikiParse:${dto.mediaType}:${dto.link}`;
     const cache: WikiResponseDto = await this.cacheManager.get(CACHE_KEY);
     if (cache) return cache;
@@ -98,6 +105,7 @@ export class ParseService {
 
   public async wikiSearch(dto: SearchParseDto): Promise<SearchResponseDto[]> {
     this.logger.log('wikiSearch');
+    await validation(SearchParseDto, dto);
     const CACHE_KEY = `wikiSearch:${dto.query}:${dto.count}`;
     const cache: SearchResponseDto[] = await this.cacheManager.get(CACHE_KEY);
     if (cache) return cache;

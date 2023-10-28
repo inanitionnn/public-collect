@@ -9,24 +9,8 @@ import {
   Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { comicEnum, ComicType, comics } from '../comic.entity';
+import { ComicEnum, ComicType } from '../types';
 import { ComicDto } from './comic.dto';
-
-export const ComicResponseObject = {
-  id: comics.id,
-  type: comics.type,
-  title: comics.title,
-  startYear: comics.startYear,
-  endYear: comics.endYear,
-  country: comics.country,
-  description: comics.description,
-  author: comics.author,
-  language: comics.language,
-  volumes: comics.volumes,
-  genres: comics.genres,
-  tags: comics.tags,
-  image: comics.image,
-};
 
 export class ComicResponseDto implements Omit<ComicDto, 'embedding'> {
   @ApiProperty()
@@ -34,7 +18,7 @@ export class ComicResponseDto implements Omit<ComicDto, 'embedding'> {
   id: string;
 
   @ApiProperty()
-  @IsIn(comicEnum.enumValues)
+  @IsIn(Object.values(ComicEnum))
   type: ComicType;
 
   @ApiProperty()

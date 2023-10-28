@@ -4,7 +4,7 @@ import { FilesModule } from 'src/files';
 import { FilmsModule } from 'src/films';
 import { ParseModule } from 'src/parse';
 import { ComicsModule } from 'src/comics';
-import { BooksService } from 'src/books';
+import { BooksModule } from 'src/books';
 import { SeriesModule } from 'src/series';
 import { MediaController } from './media.controller';
 
@@ -14,7 +14,7 @@ import { MediaController } from './media.controller';
     FilmsModule,
     SeriesModule,
     ComicsModule,
-    BooksService,
+    BooksModule,
     ParseModule,
   ],
   providers: [MediaService],

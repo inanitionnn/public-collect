@@ -2,6 +2,7 @@ import { Controller, Get, Logger, Param, Query } from '@nestjs/common';
 import { ParseService } from './parse.service';
 import { MediaType } from 'src/media/types';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WikiResponseDto } from './dto';
 
 @ApiTags('parse')
 @Controller('parse')
@@ -80,4 +81,29 @@ export class ParseController {
   //   return result;
   // }
   // //#endregion Images
+
+  //#region Wiki
+  @Get('wiki/:mediaType')
+  @ApiOperation({
+    summary: 'Get media info',
+    description: 'Using wiki parser',
+  })
+  @ApiResponse({
+    type: WikiResponseDto,
+    description: 'Returns parsed media',
+  })
+  async wikiParse(
+    @Query('link') link: string,
+    @Param('mediaType') mediaType: MediaType,
+  ): Promise<WikiResponseDto> {
+    this.logger.verbose(
+      `/wiki/:mediaType | mediaType: (${mediaType}), link: (${link})`,
+    );
+    const result = await this.parseService.wikiParse({
+      link,
+      mediaType,
+    });
+    return result;
+  }
+  //#endregion Wiki
 }

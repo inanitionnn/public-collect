@@ -9,12 +9,12 @@ import {
   Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { bookEnum, BookType, books } from '../book.entity';
+import { BookEnum, BookType } from '../types';
 import { BookDto } from './book.dto';
 
 export class BookWikiDto implements Omit<BookDto, 'id' | 'embedding'> {
   @ApiProperty()
-  @IsIn(bookEnum.enumValues)
+  @IsIn(Object.values(BookEnum))
   type: BookType;
 
   @ApiProperty()

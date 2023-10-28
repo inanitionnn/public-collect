@@ -7,13 +7,12 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { MediaEnum, MediaType, SortEnum, SortType } from '../types';
+import { MediaEnum, MediaType } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
-import { filmEnum, FilmType } from 'src/films';
-import { serieEnum, SerieType } from 'src/series';
-import { comicEnum, ComicType } from 'src/comics';
-import { bookEnum, BookType } from 'src/books';
-import { WatchedEnum, WatchedType } from 'src/progress';
+import { FilmEnum, FilmType } from 'src/films';
+import { SerieEnum, SerieType } from 'src/series';
+import { ComicEnum, ComicType } from 'src/comics';
+import { BookEnum, BookType } from 'src/books';
 
 export class MediaGetRandomDto {
   @ApiProperty()
@@ -45,21 +44,21 @@ export class MediaGetRandomDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsIn(filmEnum.enumValues)
+  @IsIn(Object.values(FilmEnum))
   filmType?: FilmType;
 
   @ApiProperty()
   @IsOptional()
-  @IsIn(serieEnum.enumValues)
+  @IsIn(Object.values(SerieEnum))
   serieType?: SerieType;
 
   @ApiProperty()
   @IsOptional()
-  @IsIn(comicEnum.enumValues)
+  @IsIn(Object.values(ComicEnum))
   comicType?: ComicType;
 
   @ApiProperty()
   @IsOptional()
-  @IsIn(bookEnum.enumValues)
+  @IsIn(Object.values(BookEnum))
   bookType?: BookType;
 }

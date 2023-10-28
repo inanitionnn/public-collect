@@ -1,7 +1,14 @@
-import { IsNumber, IsPositive, IsString, IsUrl, Min } from 'class-validator';
+import {
+  IsNumber,
+  IsPositive,
+  IsString,
+  IsUrl,
+  MinLength,
+} from 'class-validator';
 export class AppEnvironmentVariables {
-  @IsUrl()
-  URL: string;
+  @IsString()
+  @IsUrl({ require_tld: false })
+  CLIENT_URL: string;
 
   @IsNumber()
   @IsPositive()
@@ -20,17 +27,18 @@ export class AppEnvironmentVariables {
   CACHE_SECONDS: number;
 
   @IsString()
-  @Min(1)
+  @MinLength(1)
   GOOGLE_SEARCH_ID: string;
 
   @IsString()
-  @Min(1)
+  @MinLength(1)
   GOOGLE_API_KEY: string;
 
   @IsString()
-  @Min(1)
+  @MinLength(1)
   OPEN_AI_KEY: string;
 
-  @IsUrl()
+  @IsString()
+  @MinLength(1)
   DB_URL: string;
 }

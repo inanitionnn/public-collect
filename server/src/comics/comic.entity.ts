@@ -11,9 +11,9 @@ import {
 import { vector } from 'pgvector/drizzle-orm';
 import { orderToMedia } from '../orders';
 import { collectionsToMedia } from '../collections';
-import { progress } from '../progress';
+import { ProgressResponseObject, progress } from '../progress';
 
-export const comicEnum = pgEnum('comicType', ['manga', 'comic']);
+const comicEnum = pgEnum('comicType', ['manga', 'comic']);
 
 export const comics = pgTable(
   'comics',
@@ -56,7 +56,28 @@ export const comicsRelations = relations(comics, ({ many, one }) => ({
   collectionsToComics: many(collectionsToMedia),
 }));
 
-export type ComicType = (typeof comicEnum.enumValues)[number];
+export const ComicResponseObject = {
+  id: comics.id,
+  type: comics.type,
+  title: comics.title,
+  startYear: comics.startYear,
+  endYear: comics.endYear,
+  country: comics.country,
+  description: comics.description,
+  author: comics.author,
+  language: comics.language,
+  volumes: comics.volumes,
+  genres: comics.genres,
+  tags: comics.tags,
+  image: comics.image,
+};
+
+export const ComicProgressObject = {
+  media: ComicResponseObject,
+  progress: ProgressResponseObject,
+};
+
+// export type ComicType = (typeof comicEnum.enumValues)[number];
 
 // export type ComicSelect = InferSelectModel<typeof comics>;
 

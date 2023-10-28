@@ -12,7 +12,6 @@ import {
   MediaGetManyDto,
   MediaGetNearestDto,
   MediaGetRandomDto,
-  MediaProgressArrayDto,
   MediaProgressDto,
   MediaResponseArrayDto,
   MediaResponseDto,
@@ -24,6 +23,7 @@ import { BookCreateDto, BookUpdateDto, BooksService } from 'src/books';
 import { SerieCreateDto, SerieUpdateDto, SeriesService } from 'src/series';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { validation } from 'src/utils/validation';
 
 @Injectable()
 export class MediaService {
@@ -41,6 +41,7 @@ export class MediaService {
 
   public async create(dto: MediaCreateDto): Promise<MediaResponseDto> {
     this.logger.log('create');
+    await validation(MediaCreateDto, dto);
     const { media, mediaType } = dto;
 
     if (media.image) {
@@ -81,6 +82,7 @@ export class MediaService {
 
   public async search(dto: MediaSearchDto): Promise<MediaResponseArrayDto> {
     this.logger.log('search');
+    await validation(MediaSearchDto, dto);
     const { mediaType, query } = dto;
     let result: MediaResponseArrayDto['media'];
 
@@ -114,6 +116,7 @@ export class MediaService {
 
   public async getByid(dto: MediaGetDto): Promise<MediaProgressDto> {
     this.logger.log('getByid');
+    await validation(MediaGetDto, dto);
     const { mediaType, id } = dto;
 
     let result: MediaProgressDto['media'];
@@ -148,6 +151,7 @@ export class MediaService {
 
   public async getMany(dto: MediaGetManyDto): Promise<MediaResponseArrayDto> {
     this.logger.log('getMany');
+    await validation(MediaGetManyDto, dto);
     const {
       mediaType,
       limit,
@@ -218,6 +222,7 @@ export class MediaService {
     dto: MediaGetRandomDto,
   ): Promise<MediaResponseArrayDto> {
     this.logger.log('getRandom');
+    await validation(MediaGetRandomDto, dto);
     const {
       mediaType,
       bookType,
@@ -286,6 +291,7 @@ export class MediaService {
 
   public async getGenres(dto: MediaGetGenresDto): Promise<MediaGenresDto> {
     this.logger.log('getGenres');
+    await validation(MediaGetGenresDto, dto);
     const { mediaType, bookType, comicType, filmType, serieType } = dto;
 
     let result: MediaGenresDto['genres'];
@@ -322,6 +328,7 @@ export class MediaService {
     dto: MediaEmbeddingDto,
   ): Promise<MediaResponseArrayDto> {
     this.logger.log('embeddingSearch');
+    await validation(MediaEmbeddingDto, dto);
     const { mediaType, limit, query } = dto;
 
     let result: MediaResponseArrayDto['media'];
@@ -360,6 +367,7 @@ export class MediaService {
     dto: MediaGetNearestDto,
   ): Promise<MediaResponseArrayDto> {
     this.logger.log('getNearest');
+    await validation(MediaGetNearestDto, dto);
     const { mediaType, limit, id } = dto;
 
     let result: MediaResponseArrayDto['media'];
@@ -394,6 +402,7 @@ export class MediaService {
 
   public async delete(dto: MediaGetDto): Promise<MediaResponseDto> {
     this.logger.log('delete');
+    await validation(MediaGetDto, dto);
     const { mediaType, id } = dto;
 
     let result: MediaResponseDto['media'];
@@ -422,6 +431,7 @@ export class MediaService {
 
   public async update(dto: MediaUpdateDto): Promise<MediaResponseDto> {
     this.logger.log('update');
+    await validation(MediaUpdateDto, dto);
     const { mediaType, id, media } = dto;
 
     let result: MediaResponseDto['media'];

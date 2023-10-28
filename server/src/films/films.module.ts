@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { FilmsService } from './films.service';
-import { drizzleProvider } from 'src/drizzle';
+import { DrizzleModule } from 'src/drizzle/drizzle.module';
 
 @Module({
+  imports: [DrizzleModule],
   exports: [FilmsService],
-  providers: [FilmsService, ...drizzleProvider],
+  providers: [FilmsService],
 })
 export class FilmsModule {}

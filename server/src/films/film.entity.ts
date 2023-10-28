@@ -11,9 +11,9 @@ import {
 import { vector } from 'pgvector/drizzle-orm';
 import { orderToMedia } from '../orders';
 import { collectionsToMedia } from '../collections';
-import { progress } from '../progress';
+import { ProgressResponseObject, progress } from '../progress';
 
-export const filmEnum = pgEnum('filmType', ['movie', 'anime', 'animated']);
+const filmEnum = pgEnum('filmType', ['movie', 'anime', 'animated']);
 
 export const films = pgTable(
   'films',
@@ -58,7 +58,28 @@ export const filmsRelations = relations(films, ({ many, one }) => ({
   collectionsToFilms: many(collectionsToMedia),
 }));
 
-export type FilmType = (typeof filmEnum.enumValues)[number];
+export const FilmResponseObject = {
+  id: films.id,
+  type: films.type,
+  title: films.title,
+  year: films.year,
+  country: films.country,
+  description: films.description,
+  directedBy: films.directedBy,
+  starring: films.starring,
+  language: films.language,
+  runTime: films.runTime,
+  boxOffice: films.boxOffice,
+  budget: films.budget,
+  genres: films.genres,
+  tags: films.tags,
+  image: films.image,
+};
+export const FilmProgressObject = {
+  media: FilmResponseObject,
+  progress: ProgressResponseObject,
+};
+// export type FilmType = (typeof filmEnum.enumValues)[number];
 
 // export type FilmSelect = InferSelectModel<typeof films>;
 

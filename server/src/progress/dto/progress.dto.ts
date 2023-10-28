@@ -9,7 +9,7 @@ import {
   Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { WatchedEnum, WatchedType } from '../progress.entity';
+import { WatchedEnum, WatchedType } from '../types';
 
 export class ProgressDto {
   @ApiProperty()
@@ -38,7 +38,7 @@ export class ProgressDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsIn(WatchedEnum.enumValues)
+  @IsIn(Object.values(WatchedEnum))
   watched?: WatchedType;
 
   @ApiProperty()

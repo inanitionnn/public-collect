@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import MyError from 'src/utils/errors';
-import { seasons } from './seasons.entity';
 import {
   SeasonCreateDto,
   SeasonResponseDto,
@@ -8,8 +7,9 @@ import {
   SeasonUpdateDto,
 } from './dto';
 import { and, eq, inArray } from 'drizzle-orm';
-import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import * as schema from 'src/drizzle/schema';
+import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
 
 @Injectable()
 export class SeasonsService {
@@ -17,8 +17,8 @@ export class SeasonsService {
   private readonly error = new MyError();
 
   constructor(
-    @Inject(DrizzleAsyncProvider)
-    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+    @Inject(PG_CONNECTION)
+    private db: PostgresJsDatabase<typeof schema>,
   ) {}
 
   public async create(
@@ -33,7 +33,7 @@ export class SeasonsService {
 
     try {
       const result = await this.db
-        .insert(seasons)
+        .insert(schema.seasons)
         .values(insertSeasons)
         .returning(SeasonResponseObject);
       return result;
@@ -47,8 +47,8 @@ export class SeasonsService {
     try {
       const result = await this.db
         .select(SeasonResponseObject)
-        .from(seasons)
-        .where(eq(seasons.seriesId, seriesId));
+        .from(schema.seasons)
+        .where(eq(schema.seasons.seriesId, seriesId));
       return result;
     } catch (error) {
       this.error.internalServerError(error);
@@ -93,9 +93,14 @@ export class SeasonsService {
     try {
       for (const season of updateSeasons) {
         const result = await this.db
-          .update(seasons)
+          .update(schema.seasons)
           .set(season)
-          .where(and(eq(seasons.seriesId, serieId), eq(seasons.id, season.id)));
+          .where(
+            and(
+              eq(schema.seasons.seriesId, serieId),
+              eq(schema.seasons.id, season.id),
+            ),
+          );
         resultSeasons.push(result[0]);
       }
     } catch (error) {
@@ -112,9 +117,12 @@ export class SeasonsService {
 
     try {
       const result = await this.db
-        .delete(seasons)
+        .delete(schema.seasons)
         .where(
-          and(eq(seasons.seriesId, seriesId), inArray(seasons.id, seasonsIds)),
+          and(
+            eq(schema.seasons.seriesId, seriesId),
+            inArray(schema.seasons.id, seasonsIds),
+          ),
         );
 
       return result;
@@ -129,8 +137,8 @@ export class SeasonsService {
     this.logger.log('update');
     try {
       const result = await this.db
-        .delete(seasons)
-        .where(eq(seasons.seriesId, seriesId));
+        .delete(schema.seasons)
+        .where(eq(schema.seasons.seriesId, seriesId));
       return result;
     } catch (error) {
       this.error.internalServerError(error);

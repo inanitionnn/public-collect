@@ -1,11 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FilmResponseDto, FilmResponseObject } from './filmResponse.dto';
-import { ProgressResponseDto, ProgressResponseObject } from 'src/progress';
-
-export const FilmProgressObject = {
-  media: FilmResponseObject,
-  progress: ProgressResponseObject,
-};
+import { FilmResponseDto } from './filmResponse.dto';
+import { ProgressResponseDto } from 'src/progress';
 
 export class FilmProgressDto {
   @ApiProperty()

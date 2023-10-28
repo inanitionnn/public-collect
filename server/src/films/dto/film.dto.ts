@@ -8,7 +8,7 @@ import {
   IsUUID,
   Length,
 } from 'class-validator';
-import { FilmType, filmEnum } from '../film.entity';
+import { FilmType, FilmEnum } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FilmDto {
@@ -16,10 +16,10 @@ export class FilmDto {
   @IsUUID()
   id: string;
 
-  // @ApiProperty()
-  // @IsOptional()
-  // @IsIn(filmEnum.enumValues)
-  // type?: FilmType;
+  @ApiProperty()
+  @IsOptional()
+  @IsIn(Object.values(FilmEnum))
+  type?: FilmType;
 
   @ApiProperty()
   @IsOptional()

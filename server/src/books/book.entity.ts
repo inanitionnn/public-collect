@@ -10,10 +10,10 @@ import {
 } from 'drizzle-orm/pg-core';
 import { vector } from 'pgvector/drizzle-orm';
 import { collectionsToMedia } from '../collections';
-import { progress } from '../progress';
+import { ProgressResponseObject, progress } from '../progress';
 import { orderToMedia } from 'src/orders';
 
-export const bookEnum = pgEnum('bookType', ['fiction', 'nonFiction']);
+const bookEnum = pgEnum('bookType', ['fiction', 'nonFiction']);
 
 export const books = pgTable(
   'books',
@@ -55,7 +55,27 @@ export const booksRelations = relations(books, ({ many, one }) => ({
   collectionsToBooks: many(collectionsToMedia),
 }));
 
-export type BookType = (typeof bookEnum.enumValues)[number];
+export const BookResponseObject = {
+  id: books.id,
+  type: books.type,
+  title: books.title,
+  year: books.year,
+  country: books.country,
+  description: books.description,
+  author: books.author,
+  language: books.language,
+  pages: books.pages,
+  genres: books.genres,
+  tags: books.tags,
+  image: books.image,
+};
+
+export const BookProgressObject = {
+  media: BookResponseObject,
+  progress: ProgressResponseObject,
+};
+
+// export type BookType = (typeof bookEnum.enumValues)[number];
 
 // export type BookSelect = InferSelectModel<typeof books>;
 // export type BookInsert = InferInsertModel<typeof books>;

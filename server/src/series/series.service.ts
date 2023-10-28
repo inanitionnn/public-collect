@@ -3,12 +3,9 @@ import MyError from 'src/utils/errors';
 import {
   SerieCreateDto,
   SerieProgressDto,
-  SerieProgressObject,
   SerieResponseDto,
-  SerieResponseObject,
   SerieUpdateDto,
 } from './dto';
-import { SerieType, series } from './series.entity';
 import { l2Distance } from 'pgvector/drizzle-orm';
 import {
   eq,
@@ -22,11 +19,13 @@ import {
   between,
   not,
 } from 'drizzle-orm';
-import { WatchedType, progress } from 'src/progress';
+import { WatchedType } from 'src/progress';
 import { SeasonsService } from 'src/seasons';
 import { SortType } from 'src/media';
-import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
+import * as schema from 'src/drizzle/schema';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
+import { SerieType } from './types';
 
 @Injectable()
 export class SeriesService {
@@ -34,8 +33,8 @@ export class SeriesService {
   private readonly error = new MyError();
 
   constructor(
-    @Inject(DrizzleAsyncProvider)
-    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+    @Inject(PG_CONNECTION)
+    private db: PostgresJsDatabase<typeof schema>,
     private readonly seasonsService: SeasonsService,
   ) {}
 
@@ -44,9 +43,9 @@ export class SeriesService {
     const { seasons: _, ...other } = dto;
     try {
       const result = await this.db
-        .insert(series)
+        .insert(schema.series)
         .values(other)
-        .returning(SerieResponseObject);
+        .returning(schema.SerieResponseObject);
 
       const seasons = await this.seasonsService.create(
         result[0].id,
@@ -62,10 +61,10 @@ export class SeriesService {
     this.logger.log('search');
     try {
       const result = await this.db
-        .select(SerieResponseObject)
-        .from(series)
+        .select(schema.SerieResponseObject)
+        .from(schema.series)
         .where(
-          sql`to_tsvector('english', ${series.title.name}) @@ to_tsquery('english', ${query})`,
+          sql`to_tsvector('english', ${schema.series.title.name}) @@ to_tsquery('english', ${query})`,
         );
       return result;
     } catch (error) {
@@ -78,10 +77,13 @@ export class SeriesService {
     const seasons = await this.seasonsService.getBySeriesId(id);
     try {
       const result = await this.db
-        .select(SerieProgressObject)
-        .from(series)
-        .where(eq(series.id, id))
-        .innerJoin(progress, eq(progress.serieId, series.id));
+        .select(schema.SerieProgressObject)
+        .from(schema.series)
+        .where(eq(schema.series.id, id))
+        .innerJoin(
+          schema.progress,
+          eq(schema.progress.serieId, schema.series.id),
+        );
       return {
         media: { ...result[0].media, seasons },
         progress: result[0].progress,
@@ -101,27 +103,30 @@ export class SeriesService {
     this.logger.log('getMany');
 
     const query = this.db
-      .select(SerieResponseObject)
-      .from(series)
-      .innerJoin(progress, eq(progress.serieId, series.id));
+      .select(schema.SerieResponseObject)
+      .from(schema.series)
+      .innerJoin(
+        schema.progress,
+        eq(schema.progress.serieId, schema.series.id),
+      );
 
-    if (serieType) query.where(eq(series.type, serieType));
+    if (serieType) query.where(eq(schema.series.type, serieType));
 
     if (watched === 'rated') {
-      query.where(isNotNull(progress.rate));
+      query.where(isNotNull(schema.progress.rate));
     } else if (watched) {
-      query.where(eq(progress.watched, watched));
+      query.where(eq(schema.progress.watched, watched));
     }
 
     const sortConditions: Record<SortType, SQL<unknown>> = {
-      dateAsc: asc(progress.createdAt),
-      dateDesc: desc(progress.createdAt),
-      rateAsc: asc(progress.rate),
-      rateDesc: desc(progress.rate),
-      titleAsc: asc(series.title),
-      titleDesc: desc(series.title),
-      yearAsc: asc(series.startYear),
-      yearDesc: desc(series.startYear),
+      dateAsc: asc(schema.progress.createdAt),
+      dateDesc: desc(schema.progress.createdAt),
+      rateAsc: asc(schema.progress.rate),
+      rateDesc: desc(schema.progress.rate),
+      titleAsc: asc(schema.series.title),
+      titleDesc: desc(schema.series.title),
+      yearAsc: asc(schema.series.startYear),
+      yearDesc: desc(schema.series.startYear),
     };
 
     if (sortType && sortConditions[sortType]) {
@@ -149,22 +154,24 @@ export class SeriesService {
   ): Promise<SerieResponseDto[]> {
     this.logger.log('getRandom');
 
-    const query = this.db.select(SerieResponseObject).from(series);
+    const query = this.db
+      .select(schema.SerieResponseObject)
+      .from(schema.series);
 
-    if (serieType) query.where(eq(series.type, serieType));
+    if (serieType) query.where(eq(schema.series.type, serieType));
 
     // toYear >= year >= fromYear
     if (fromYear && toYear)
-      query.where(between(series.startYear, fromYear, toYear));
+      query.where(between(schema.series.startYear, fromYear, toYear));
     // year >= fromYear
-    else if (fromYear) query.where(gte(series.startYear, fromYear));
+    else if (fromYear) query.where(gte(schema.series.startYear, fromYear));
     // toYear >= year
-    else query.where(lte(series.startYear, toYear));
+    else query.where(lte(schema.series.startYear, toYear));
 
     if (genres && genres.length !== 0) {
       const genreSql = sql`ARRAY['${genres.join(`', '`)}']::varchar[]`;
       query.where(
-        sql`${genreSql} <@ ${series.genres.name} OR ${genreSql} && ${series.genres.name}`,
+        sql`${genreSql} <@ ${schema.series.genres.name} OR ${genreSql} && ${schema.series.genres.name}`,
       );
     }
     query.orderBy(sql`RANDOM()`).limit(limit);
@@ -182,9 +189,9 @@ export class SeriesService {
 
     try {
       const result = await this.db
-        .select({ genres: series.genres })
-        .from(series)
-        .where(eq(series.type, serieType));
+        .select({ genres: schema.series.genres })
+        .from(schema.series)
+        .where(eq(schema.series.type, serieType));
       return result[0].genres;
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -201,10 +208,10 @@ export class SeriesService {
     const seasons = await this.seasonsService.update(serieId, newSeasons);
     try {
       const result = await this.db
-        .update(series)
+        .update(schema.series)
         .set(otherDto)
-        .where(eq(series.id, serieId))
-        .returning(SerieResponseObject);
+        .where(eq(schema.series.id, serieId))
+        .returning(schema.SerieResponseObject);
       return { ...result[0], seasons };
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -218,9 +225,9 @@ export class SeriesService {
     this.logger.log('embeddingSearch');
     try {
       const result = await this.db
-        .select(SerieResponseObject)
-        .from(series)
-        .orderBy(l2Distance(series.embedding, embedding))
+        .select(schema.SerieResponseObject)
+        .from(schema.series)
+        .orderBy(l2Distance(schema.series.embedding, embedding))
         .limit(limit);
       return result;
     } catch (error) {
@@ -236,13 +243,13 @@ export class SeriesService {
     try {
       const embedding = await this.db
         .select()
-        .from(series)
-        .where(eq(series.id, serieId));
+        .from(schema.series)
+        .where(eq(schema.series.id, serieId));
       const result = await this.db
-        .select(SerieResponseObject)
-        .from(series)
-        .where(not(eq(series.id, serieId)))
-        .orderBy(l2Distance(series.embedding, embedding))
+        .select(schema.SerieResponseObject)
+        .from(schema.series)
+        .where(not(eq(schema.series.id, serieId)))
+        .orderBy(l2Distance(schema.series.embedding, embedding))
         .limit(limit);
       return result;
     } catch (error) {
@@ -255,9 +262,9 @@ export class SeriesService {
     const seasons = await this.seasonsService.deleteBySeriesId(serieId);
     try {
       const result = await this.db
-        .delete(series)
-        .where(eq(series.id, serieId))
-        .returning(SerieResponseObject);
+        .delete(schema.series)
+        .where(eq(schema.series.id, serieId))
+        .returning(schema.SerieResponseObject);
       return { ...result[0], seasons };
     } catch (error) {
       throw this.error.internalServerError(error);

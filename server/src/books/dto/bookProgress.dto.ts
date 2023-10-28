@@ -1,11 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ProgressResponseDto, ProgressResponseObject } from 'src/progress';
-import { BookResponseDto, BookResponseObject } from './bookResponse.dto';
-
-export const BookProgressObject = {
-  media: BookResponseObject,
-  progress: ProgressResponseObject,
-};
+import { ProgressResponseDto } from 'src/progress';
+import { BookResponseDto } from './bookResponse.dto';
 
 export class BookProgressDto {
   @ApiProperty()

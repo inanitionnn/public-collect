@@ -1,19 +1,28 @@
-import * as books from '../books/book.entity';
-import * as comics from '../comics/comic.entity';
-import * as films from '../films/film.entity';
-import * as series from '../series/series.entity';
-import * as seasons from '../seasons/seasons.entity';
-import * as orders from '../orders/order.entity';
-import * as progress from '../progress/progress.entity';
-import * as collections from '../collections/collection.entity';
+export * from '../books/book.entity';
+export * from '../comics/comic.entity';
+export * from '../films/film.entity';
+export * from '../series/series.entity';
+export * from '../seasons/seasons.entity';
+export * from '../orders/order.entity';
+export * from '../progress/progress.entity';
+export * from '../collections/collection.entity';
 
-export const DrizzleSchema = {
-  books,
-  comics,
-  films,
-  series,
-  seasons,
-  collections,
-  progress,
-  orders,
-};
+// import { books } from '../books/book.entity';
+// import { comics } from '../comics/comic.entity';
+// import { films } from '../films/film.entity';
+// import { series } from '../series/series.entity';
+// import { seasons } from '../seasons/seasons.entity';
+// import { orders } from '../orders/order.entity';
+// import { progress } from '../progress/progress.entity';
+// import { collections } from '../collections/collection.entity';
+
+// export const DrizzleSchema = {
+//   books,
+//   comics,
+//   films,
+//   series,
+//   seasons,
+//   collections,
+//   progress,
+//   orders,
+// };

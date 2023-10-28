@@ -42,9 +42,9 @@
     "rxjs": "^7.8.1",
     "sharp": "^0.32.6",
     "uuid": "^9.0.1",
-    "wtf-plugin-classify": "^2.1.0",
+    "wtf-plugin-classify": "^2.0.1",
     "wtf-plugin-summary": "^1.0.0",
-    "wtf_wikipedia": "^10.2.0"
+    "wtf_wikipedia": "^10.1.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

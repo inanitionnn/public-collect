@@ -1,5 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import MyError from 'src/utils/errors';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import {
+  ComicCreateDto,
+  ComicProgressDto,
+  ComicResponseDto,
+  ComicUpdateDto,
+} from './dto';
+import * as schema from 'src/drizzle/schema';
+import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
 import {
   eq,
   sql,
@@ -12,21 +21,10 @@ import {
   not,
   SQL,
 } from 'drizzle-orm';
-import { l2Distance } from 'pgvector/drizzle-orm';
-import { ComicType, comics } from './comic.entity';
-import {
-  ComicCreateDto,
-  ComicProgressObject,
-  ComicProgressDto,
-  ComicResponseDto,
-  ComicResponseObject,
-  ComicUpdateDto,
-} from './dto';
-import { WatchedType, progress } from 'src/progress';
-
+import { ComicType } from './types';
 import { SortType } from 'src/media';
-import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { WatchedType } from 'src/progress';
+import { l2Distance } from 'pgvector/drizzle-orm';
 
 @Injectable()
 export class ComicsService {
@@ -34,19 +32,19 @@ export class ComicsService {
   private readonly error = new MyError();
 
   constructor(
-    @Inject(DrizzleAsyncProvider)
-    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+    @Inject(PG_CONNECTION)
+    private db: PostgresJsDatabase<typeof schema>,
   ) {}
 
-  public async create(film: ComicCreateDto): Promise<ComicResponseDto> {
+  public async create(comic: ComicCreateDto): Promise<ComicResponseDto> {
     this.logger.log('create');
 
     try {
       const result = await this.db
-        .insert(comics)
-        .values(film)
-        .returning(ComicResponseObject);
-      return result[0];
+        .insert(schema.comics)
+        .values(comic)
+        .returning(schema.ComicResponseObject);
+      return;
     } catch (error) {
       this.error.internalServerError(error);
     }
@@ -57,10 +55,10 @@ export class ComicsService {
 
     try {
       const result = await this.db
-        .select(ComicResponseObject)
-        .from(comics)
+        .select(schema.ComicResponseObject)
+        .from(schema.comics)
         .where(
-          sql`to_tsvector('english', ${comics.title.name}) @@ to_tsquery('english', ${query})`,
+          sql`to_tsvector('english', ${schema.comics.title.name}) @@ to_tsquery('english', ${query})`,
         );
       return result;
     } catch (error) {
@@ -73,10 +71,13 @@ export class ComicsService {
 
     try {
       const result = await this.db
-        .select(ComicProgressObject)
-        .from(comics)
-        .where(eq(comics.id, id))
-        .innerJoin(progress, eq(progress.comicId, comics.id));
+        .select(schema.ComicProgressObject)
+        .from(schema.comics)
+        .where(eq(schema.comics.id, id))
+        .innerJoin(
+          schema.progress,
+          eq(schema.progress.comicId, schema.comics.id),
+        );
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -93,27 +94,30 @@ export class ComicsService {
     this.logger.log('getMany');
 
     const query = this.db
-      .select(ComicResponseObject)
-      .from(comics)
-      .innerJoin(progress, eq(progress.comicId, comics.id));
+      .select(schema.ComicResponseObject)
+      .from(schema.comics)
+      .innerJoin(
+        schema.progress,
+        eq(schema.progress.comicId, schema.comics.id),
+      );
 
-    if (comicType) query.where(eq(comics.type, comicType));
+    if (comicType) query.where(eq(schema.comics.type, comicType));
 
     if (watched === 'rated') {
-      query.where(isNotNull(progress.rate));
+      query.where(isNotNull(schema.progress.rate));
     } else if (watched) {
-      query.where(eq(progress.watched, watched));
+      query.where(eq(schema.progress.watched, watched));
     }
 
     const sortConditions: Record<SortType, SQL<unknown>> = {
-      dateAsc: asc(progress.createdAt),
-      dateDesc: desc(progress.createdAt),
-      rateAsc: asc(progress.rate),
-      rateDesc: desc(progress.rate),
-      titleAsc: asc(comics.title),
-      titleDesc: desc(comics.title),
-      yearAsc: asc(comics.startYear),
-      yearDesc: desc(comics.startYear),
+      dateAsc: asc(schema.progress.createdAt),
+      dateDesc: desc(schema.progress.createdAt),
+      rateAsc: asc(schema.progress.rate),
+      rateDesc: desc(schema.progress.rate),
+      titleAsc: asc(schema.comics.title),
+      titleDesc: desc(schema.comics.title),
+      yearAsc: asc(schema.comics.startYear),
+      yearDesc: desc(schema.comics.startYear),
     };
 
     if (sortType && sortConditions[sortType]) {
@@ -141,22 +145,24 @@ export class ComicsService {
   ): Promise<ComicResponseDto[]> {
     this.logger.log('getRandom');
 
-    const query = this.db.select(ComicResponseObject).from(comics);
+    const query = this.db
+      .select(schema.ComicResponseObject)
+      .from(schema.comics);
 
-    if (comicType) query.where(eq(comics.type, comicType));
+    if (comicType) query.where(eq(schema.comics.type, comicType));
 
     // toYear >= year >= fromYear
     if (fromYear && toYear)
-      query.where(between(comics.startYear, fromYear, toYear));
+      query.where(between(schema.comics.startYear, fromYear, toYear));
     // year >= fromYear
-    else if (fromYear) query.where(gte(comics.startYear, fromYear));
+    else if (fromYear) query.where(gte(schema.comics.startYear, fromYear));
     // toYear >= year
-    else query.where(lte(comics.startYear, toYear));
+    else query.where(lte(schema.comics.startYear, toYear));
 
     if (genres && genres.length !== 0) {
       const genreSql = sql`ARRAY['${genres.join(`', '`)}']::varchar[]`;
       query.where(
-        sql`${genreSql} <@ ${comics.genres.name} OR ${genreSql} && ${comics.genres.name}`,
+        sql`${genreSql} <@ ${schema.comics.genres.name} OR ${genreSql} && ${schema.comics.genres.name}`,
       );
     }
     query.orderBy(sql`RANDOM()`).limit(limit);
@@ -174,9 +180,9 @@ export class ComicsService {
 
     try {
       const result = await this.db
-        .select({ genres: comics.genres })
-        .from(comics)
-        .where(eq(comics.type, comicType));
+        .select({ genres: schema.comics.genres })
+        .from(schema.comics)
+        .where(eq(schema.comics.type, comicType));
       return result[0].genres;
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -185,15 +191,15 @@ export class ComicsService {
 
   public async update(
     comicId: string,
-    film: ComicUpdateDto,
+    comic: ComicUpdateDto,
   ): Promise<ComicResponseDto> {
     this.logger.log('update');
     try {
       const result = await this.db
-        .update(comics)
-        .set({ ...film })
-        .where(eq(comics.id, comicId))
-        .returning(ComicResponseObject);
+        .update(schema.comics)
+        .set(comic)
+        .where(eq(schema.comics.id, comicId))
+        .returning(schema.ComicResponseObject);
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -207,9 +213,9 @@ export class ComicsService {
     this.logger.log('embeddingSearch');
     try {
       const result = await this.db
-        .select(ComicResponseObject)
-        .from(comics)
-        .orderBy(l2Distance(comics.embedding, embedding))
+        .select(schema.ComicResponseObject)
+        .from(schema.comics)
+        .orderBy(l2Distance(schema.comics.embedding, embedding))
         .limit(limit);
       return result;
     } catch (error) {
@@ -225,13 +231,13 @@ export class ComicsService {
     try {
       const embedding = await this.db
         .select()
-        .from(comics)
-        .where(eq(comics.id, comicId));
+        .from(schema.comics)
+        .where(eq(schema.comics.id, comicId));
       const result = await this.db
-        .select(ComicResponseObject)
-        .from(comics)
-        .where(not(eq(comics.id, comicId)))
-        .orderBy(l2Distance(comics.embedding, embedding))
+        .select(schema.ComicResponseObject)
+        .from(schema.comics)
+        .where(not(eq(schema.comics.id, comicId)))
+        .orderBy(l2Distance(schema.comics.embedding, embedding))
         .limit(limit);
       return result;
     } catch (error) {
@@ -244,9 +250,9 @@ export class ComicsService {
 
     try {
       const result = await this.db
-        .delete(comics)
-        .where(eq(comics.id, comicId))
-        .returning(ComicResponseObject);
+        .delete(schema.comics)
+        .where(eq(schema.comics.id, comicId))
+        .returning(schema.ComicResponseObject);
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);

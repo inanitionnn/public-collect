@@ -13,20 +13,18 @@ import {
   SQL,
 } from 'drizzle-orm';
 import { l2Distance } from 'pgvector/drizzle-orm';
-import { BookType, books } from './book.entity';
+import { BookType } from './types';
 import {
   BookCreateDto,
-  BookProgressObject,
   BookProgressDto,
   BookResponseDto,
-  BookResponseObject,
   BookUpdateDto,
 } from './dto';
-import { WatchedType, progress } from 'src/progress';
-
+import { WatchedType } from 'src/progress';
 import { SortType } from 'src/media';
-import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import * as schema from 'src/drizzle/schema';
+import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
 
 @Injectable()
 export class BooksService {
@@ -34,18 +32,18 @@ export class BooksService {
   private readonly error = new MyError();
 
   constructor(
-    @Inject(DrizzleAsyncProvider)
-    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+    @Inject(PG_CONNECTION)
+    private db: PostgresJsDatabase<typeof schema>,
   ) {}
 
-  public async create(film: BookCreateDto): Promise<BookResponseDto> {
+  public async create(book: BookCreateDto): Promise<BookResponseDto> {
     this.logger.log('create');
 
     try {
       const result = await this.db
-        .insert(books)
-        .values(film)
-        .returning(BookResponseObject);
+        .insert(schema.books)
+        .values(book)
+        .returning(schema.BookResponseObject);
       return result[0];
     } catch (error) {
       this.error.internalServerError(error);
@@ -57,10 +55,10 @@ export class BooksService {
 
     try {
       const result = await this.db
-        .select(BookResponseObject)
-        .from(books)
+        .select(schema.BookResponseObject)
+        .from(schema.books)
         .where(
-          sql`to_tsvector('english', ${books.title.name}) @@ to_tsquery('english', ${query})`,
+          sql`to_tsvector('english', ${schema.books.title.name}) @@ to_tsquery('english', ${query})`,
         );
       return result;
     } catch (error) {
@@ -73,10 +71,13 @@ export class BooksService {
 
     try {
       const result = await this.db
-        .select(BookProgressObject)
-        .from(books)
-        .where(eq(books.id, id))
-        .innerJoin(progress, eq(progress.bookId, books.id));
+        .select(schema.BookProgressObject)
+        .from(schema.books)
+        .where(eq(schema.books.id, id))
+        .innerJoin(
+          schema.progress,
+          eq(schema.progress.bookId, schema.books.id),
+        );
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -93,27 +94,27 @@ export class BooksService {
     this.logger.log('getMany');
 
     const query = this.db
-      .select(BookResponseObject)
-      .from(books)
-      .innerJoin(progress, eq(progress.bookId, books.id));
+      .select(schema.BookResponseObject)
+      .from(schema.books)
+      .innerJoin(schema.progress, eq(schema.progress.bookId, schema.books.id));
 
-    if (bookType) query.where(eq(books.type, bookType));
+    if (bookType) query.where(eq(schema.books.type, bookType));
 
     if (watched === 'rated') {
-      query.where(isNotNull(progress.rate));
+      query.where(isNotNull(schema.progress.rate));
     } else if (watched) {
-      query.where(eq(progress.watched, watched));
+      query.where(eq(schema.progress.watched, watched));
     }
 
     const sortConditions: Record<SortType, SQL<unknown>> = {
-      dateAsc: asc(progress.createdAt),
-      dateDesc: desc(progress.createdAt),
-      rateAsc: asc(progress.rate),
-      rateDesc: desc(progress.rate),
-      titleAsc: asc(books.title),
-      titleDesc: desc(books.title),
-      yearAsc: asc(books.year),
-      yearDesc: desc(books.year),
+      dateAsc: asc(schema.progress.createdAt),
+      dateDesc: desc(schema.progress.createdAt),
+      rateAsc: asc(schema.progress.rate),
+      rateDesc: desc(schema.progress.rate),
+      titleAsc: asc(schema.books.title),
+      titleDesc: desc(schema.books.title),
+      yearAsc: asc(schema.books.year),
+      yearDesc: desc(schema.books.year),
     };
 
     if (sortType && sortConditions[sortType]) {
@@ -141,21 +142,22 @@ export class BooksService {
   ): Promise<BookResponseDto[]> {
     this.logger.log('getRandom');
 
-    const query = this.db.select(BookResponseObject).from(books);
+    const query = this.db.select(schema.BookResponseObject).from(schema.books);
 
-    if (bookType) query.where(eq(books.type, bookType));
+    if (bookType) query.where(eq(schema.books.type, bookType));
 
     // toYear >= year >= fromYear
-    if (fromYear && toYear) query.where(between(books.year, fromYear, toYear));
+    if (fromYear && toYear)
+      query.where(between(schema.books.year, fromYear, toYear));
     // year >= fromYear
-    else if (fromYear) query.where(gte(books.year, fromYear));
+    else if (fromYear) query.where(gte(schema.books.year, fromYear));
     // toYear >= year
-    else query.where(lte(books.year, toYear));
+    else query.where(lte(schema.books.year, toYear));
 
     if (genres && genres.length !== 0) {
       const genreSql = sql`ARRAY['${genres.join(`', '`)}']::varchar[]`;
       query.where(
-        sql`${genreSql} <@ ${books.genres.name} OR ${genreSql} && ${books.genres.name}`,
+        sql`${genreSql} <@ ${schema.books.genres.name} OR ${genreSql} && ${schema.books.genres.name}`,
       );
     }
     query.orderBy(sql`RANDOM()`).limit(limit);
@@ -173,9 +175,9 @@ export class BooksService {
 
     try {
       const result = await this.db
-        .select({ genres: books.genres })
-        .from(books)
-        .where(eq(books.type, bookType));
+        .select({ genres: schema.books.genres })
+        .from(schema.books)
+        .where(eq(schema.books.type, bookType));
       return result[0].genres;
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -184,15 +186,15 @@ export class BooksService {
 
   public async update(
     bookId: string,
-    film: BookUpdateDto,
+    book: BookUpdateDto,
   ): Promise<BookResponseDto> {
     this.logger.log('update');
     try {
       const result = await this.db
-        .update(books)
-        .set({ ...film })
-        .where(eq(books.id, bookId))
-        .returning(BookResponseObject);
+        .update(schema.books)
+        .set(book)
+        .where(eq(schema.books.id, bookId))
+        .returning(schema.BookResponseObject);
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -206,9 +208,9 @@ export class BooksService {
     this.logger.log('embeddingSearch');
     try {
       const result = await this.db
-        .select(BookResponseObject)
-        .from(books)
-        .orderBy(l2Distance(books.embedding, embedding))
+        .select(schema.BookResponseObject)
+        .from(schema.books)
+        .orderBy(l2Distance(schema.books.embedding, embedding))
         .limit(limit);
       return result;
     } catch (error) {
@@ -224,13 +226,13 @@ export class BooksService {
     try {
       const embedding = await this.db
         .select()
-        .from(books)
-        .where(eq(books.id, bookId));
+        .from(schema.books)
+        .where(eq(schema.books.id, bookId));
       const result = await this.db
-        .select(BookResponseObject)
-        .from(books)
-        .where(not(eq(books.id, bookId)))
-        .orderBy(l2Distance(books.embedding, embedding))
+        .select(schema.BookResponseObject)
+        .from(schema.books)
+        .where(not(eq(schema.books.id, bookId)))
+        .orderBy(l2Distance(schema.books.embedding, embedding))
         .limit(limit);
       return result;
     } catch (error) {
@@ -243,9 +245,9 @@ export class BooksService {
 
     try {
       const result = await this.db
-        .delete(books)
-        .where(eq(books.id, bookId))
-        .returning(BookResponseObject);
+        .delete(schema.books)
+        .where(eq(schema.books.id, bookId))
+        .returning(schema.BookResponseObject);
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);

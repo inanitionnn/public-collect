@@ -1,15 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { FilmType, films } from './film.entity';
+import { FilmType } from './types';
 import {
   FilmCreateDto,
   FilmProgressDto,
-  FilmProgressObject,
   FilmResponseDto,
-  FilmResponseObject,
   FilmUpdateDto,
 } from './dto';
 import MyError from 'src/utils/errors';
-import { WatchedType, progress } from 'src/progress';
+import { WatchedType } from 'src/progress';
 import {
   eq,
   sql,
@@ -25,7 +23,8 @@ import {
 import { SortType } from 'src/media';
 import { l2Distance } from 'pgvector/drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { DrizzleAsyncProvider, DrizzleSchema } from 'src/drizzle';
+import * as schema from 'src/drizzle/schema';
+import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
 
 @Injectable()
 export class FilmsService {
@@ -33,17 +32,17 @@ export class FilmsService {
   private readonly error = new MyError();
 
   constructor(
-    @Inject(DrizzleAsyncProvider)
-    private readonly db: PostgresJsDatabase<typeof DrizzleSchema>,
+    @Inject(PG_CONNECTION)
+    private db: PostgresJsDatabase<typeof schema>,
   ) {}
 
   public async create(film: FilmCreateDto): Promise<FilmResponseDto> {
     this.logger.log('create');
     try {
       const result = await this.db
-        .insert(films)
+        .insert(schema.films)
         .values(film)
-        .returning(FilmResponseObject);
+        .returning(schema.FilmResponseObject);
       return result[0];
     } catch (error) {
       this.error.internalServerError(error);
@@ -55,10 +54,10 @@ export class FilmsService {
 
     try {
       const result = await this.db
-        .select(FilmResponseObject)
-        .from(films)
+        .select(schema.FilmResponseObject)
+        .from(schema.films)
         .where(
-          sql`to_tsvector('english', ${films.title.name}) @@ to_tsquery('english', ${query})`,
+          sql`to_tsvector('english', ${schema.films.title.name}) @@ to_tsquery('english', ${query})`,
         );
       return result;
     } catch (error) {
@@ -71,10 +70,13 @@ export class FilmsService {
 
     try {
       const result = await this.db
-        .select(FilmProgressObject)
-        .from(films)
-        .where(eq(films.id, id))
-        .innerJoin(progress, eq(progress.filmId, films.id));
+        .select(schema.FilmProgressObject)
+        .from(schema.films)
+        .where(eq(schema.films.id, id))
+        .innerJoin(
+          schema.progress,
+          eq(schema.progress.filmId, schema.films.id),
+        );
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -91,27 +93,27 @@ export class FilmsService {
     this.logger.log('getMany');
 
     const query = this.db
-      .select(FilmResponseObject)
-      .from(films)
-      .innerJoin(progress, eq(progress.filmId, films.id));
+      .select(schema.FilmResponseObject)
+      .from(schema.films)
+      .innerJoin(schema.progress, eq(schema.progress.filmId, schema.films.id));
 
-    if (filmType) query.where(eq(films.type, filmType));
+    if (filmType) query.where(eq(schema.films.type, filmType));
 
     if (watched === 'rated') {
-      query.where(isNotNull(progress.rate));
+      query.where(isNotNull(schema.progress.rate));
     } else if (watched) {
-      query.where(eq(progress.watched, watched));
+      query.where(eq(schema.progress.watched, watched));
     }
 
     const sortConditions: Record<SortType, SQL<unknown>> = {
-      dateAsc: asc(progress.createdAt),
-      dateDesc: desc(progress.createdAt),
-      rateAsc: asc(progress.rate),
-      rateDesc: desc(progress.rate),
-      titleAsc: asc(films.title),
-      titleDesc: desc(films.title),
-      yearAsc: asc(films.year),
-      yearDesc: desc(films.year),
+      dateAsc: asc(schema.progress.createdAt),
+      dateDesc: desc(schema.progress.createdAt),
+      rateAsc: asc(schema.progress.rate),
+      rateDesc: desc(schema.progress.rate),
+      titleAsc: asc(schema.films.title),
+      titleDesc: desc(schema.films.title),
+      yearAsc: asc(schema.films.year),
+      yearDesc: desc(schema.films.year),
     };
 
     if (sortType && sortConditions[sortType]) {
@@ -139,21 +141,22 @@ export class FilmsService {
   ): Promise<FilmResponseDto[]> {
     this.logger.log('getRandom');
 
-    const query = this.db.select(FilmResponseObject).from(films);
+    const query = this.db.select(schema.FilmResponseObject).from(schema.films);
 
-    if (filmType) query.where(eq(films.type, filmType));
+    if (filmType) query.where(eq(schema.films.type, filmType));
 
     // toYear >= year >= fromYear
-    if (fromYear && toYear) query.where(between(films.year, fromYear, toYear));
+    if (fromYear && toYear)
+      query.where(between(schema.films.year, fromYear, toYear));
     // year >= fromYear
-    else if (fromYear) query.where(gte(films.year, fromYear));
+    else if (fromYear) query.where(gte(schema.films.year, fromYear));
     // toYear >= year
-    else query.where(lte(films.year, toYear));
+    else query.where(lte(schema.films.year, toYear));
 
     if (genres && genres.length !== 0) {
       const genreSql = sql`ARRAY['${genres.join(`', '`)}']::varchar[]`;
       query.where(
-        sql`${genreSql} <@ ${films.genres.name} OR ${genreSql} && ${films.genres.name}`,
+        sql`${genreSql} <@ ${schema.films.genres.name} OR ${genreSql} && ${schema.films.genres.name}`,
       );
     }
     query.orderBy(sql`RANDOM()`).limit(limit);
@@ -171,9 +174,9 @@ export class FilmsService {
 
     try {
       const result = await this.db
-        .select({ genres: films.genres })
-        .from(films)
-        .where(eq(films.type, filmType));
+        .select({ genres: schema.films.genres })
+        .from(schema.films)
+        .where(eq(schema.films.type, filmType));
       return result[0].genres;
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -187,10 +190,10 @@ export class FilmsService {
     this.logger.log('update');
     try {
       const result = await this.db
-        .update(films)
+        .update(schema.films)
         .set({ ...film })
-        .where(eq(films.id, filmId))
-        .returning(FilmResponseObject);
+        .where(eq(schema.films.id, filmId))
+        .returning(schema.FilmResponseObject);
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);
@@ -204,9 +207,9 @@ export class FilmsService {
     this.logger.log('embeddingSearch');
     try {
       const result = await this.db
-        .select(FilmResponseObject)
-        .from(films)
-        .orderBy(l2Distance(films.embedding, embedding))
+        .select(schema.FilmResponseObject)
+        .from(schema.films)
+        .orderBy(l2Distance(schema.films.embedding, embedding))
         .limit(limit);
       return result;
     } catch (error) {
@@ -222,13 +225,13 @@ export class FilmsService {
     try {
       const embedding = await this.db
         .select()
-        .from(films)
-        .where(eq(films.id, filmId));
+        .from(schema.films)
+        .where(eq(schema.films.id, filmId));
       const result = await this.db
-        .select(FilmResponseObject)
-        .from(films)
-        .where(not(eq(films.id, filmId)))
-        .orderBy(l2Distance(films.embedding, embedding))
+        .select(schema.FilmResponseObject)
+        .from(schema.films)
+        .where(not(eq(schema.films.id, filmId)))
+        .orderBy(l2Distance(schema.films.embedding, embedding))
         .limit(limit);
       return result;
     } catch (error) {
@@ -241,9 +244,9 @@ export class FilmsService {
 
     try {
       const result = await this.db
-        .delete(films)
-        .where(eq(films.id, filmId))
-        .returning(FilmResponseObject);
+        .delete(schema.films)
+        .where(eq(schema.films.id, filmId))
+        .returning(schema.FilmResponseObject);
       return result[0];
     } catch (error) {
       throw this.error.internalServerError(error);

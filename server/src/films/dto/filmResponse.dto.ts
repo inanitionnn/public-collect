@@ -9,36 +9,17 @@ import {
   IsUUID,
   Length,
 } from 'class-validator';
-import { filmEnum, FilmType, films } from '../film.entity';
+import { FilmEnum, FilmType } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
-import { DrizzleSchema } from 'src/drizzle';
-
-export const FilmResponseObject = {
-  id: DrizzleSchema.films.films.id,
-  type: films.type,
-  title: films.title,
-  year: films.year,
-  country: films.country,
-  description: films.description,
-  directedBy: films.directedBy,
-  starring: films.starring,
-  language: films.language,
-  runTime: films.runTime,
-  boxOffice: films.boxOffice,
-  budget: films.budget,
-  genres: films.genres,
-  tags: films.tags,
-  image: films.image,
-};
 
 export class FilmResponseDto implements Omit<FilmDto, 'embedding'> {
   @ApiProperty()
   @IsUUID()
   id: string;
 
-  // @ApiProperty()
-  // @IsIn(filmEnum.enumValues)
-  // type: FilmType;
+  @ApiProperty()
+  @IsIn(Object.values(FilmEnum))
+  type: FilmType;
 
   @ApiProperty()
   @IsString()
@@ -120,22 +101,4 @@ export class FilmResponseDto implements Omit<FilmDto, 'embedding'> {
   @IsOptional()
   @IsString()
   image?: string;
-
-  // constructor(films: FilmDto) {
-  //   this.id = films.id;
-  //   this.type = films.type;
-  //   this.title = films.title;
-  //   this.year = films.year;
-  //   this.country = films.country;
-  //   this.description = films.description;
-  //   this.directedBy = films.directedBy;
-  //   this.starring = films.starring;
-  //   this.language = films.language;
-  //   this.runTime = films.runTime;
-  //   this.boxOffice = films.boxOffice;
-  //   this.budget = films.budget;
-  //   this.genres = films.genres;
-  //   this.tags = films.tags;
-  //   this.image = films.image;
-  // }
 }

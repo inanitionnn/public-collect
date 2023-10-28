@@ -8,7 +8,7 @@ import {
   IsUUID,
   Length,
 } from 'class-validator';
-import { serieEnum, SerieType } from '../series.entity';
+import { SerieEnum, SerieType } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 import { SeasonResponseDto } from 'src/seasons';
 
@@ -19,7 +19,7 @@ export class SerieDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsIn(serieEnum.enumValues)
+  @IsIn(Object.values(SerieEnum))
   type?: SerieType;
 
   @ApiProperty()

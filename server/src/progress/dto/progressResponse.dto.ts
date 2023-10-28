@@ -8,16 +8,8 @@ import {
   Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { WatchedEnum, WatchedType, progress } from '../progress.entity';
+import { WatchedEnum, WatchedType } from '../types';
 import { ProgressDto } from './progress.dto';
-
-export const ProgressResponseObject = {
-  watched: progress.watched,
-  finishedOn: progress.finishedOn,
-  note: progress.note,
-  rate: progress.rate,
-  createdAt: progress.createdAt,
-};
 
 export class ProgressResponseDto
   implements
@@ -25,7 +17,7 @@ export class ProgressResponseDto
 {
   @ApiProperty()
   @IsOptional()
-  @IsIn(WatchedEnum.enumValues)
+  @IsIn(Object.values(WatchedEnum))
   watched?: WatchedType;
 
   @ApiProperty()

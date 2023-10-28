@@ -5,7 +5,7 @@ export default () => {
   validateUtil(process.env, AppEnvironmentVariables);
 
   const result: AppEnvironmentVariables = {
-    URL: process.env.URL,
+    CLIENT_URL: process.env.URL,
     PORT: Number(process.env.PORT),
     IMAGE_HEIGHT: Number(process.env.IMAGE_HEIGHT),
     IMAGE_WIDTH: Number(process.env.IMAGE_WIDTH),

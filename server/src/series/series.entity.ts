@@ -12,9 +12,9 @@ import { vector } from 'pgvector/drizzle-orm';
 import { orderToMedia } from '../orders';
 import { seasons } from '../seasons';
 import { collectionsToMedia } from '../collections';
-import { progress } from '../progress';
+import { ProgressResponseObject, progress } from '../progress';
 
-export const serieEnum = pgEnum('serieType', ['tv', 'anime', 'animated']);
+const serieEnum = pgEnum('serieType', ['tv', 'anime', 'animated']);
 
 export const series = pgTable(
   'series',
@@ -58,7 +58,28 @@ export const seriesRelations = relations(series, ({ many, one }) => ({
   seasons: many(seasons),
 }));
 
-export type SerieType = (typeof serieEnum.enumValues)[number];
+export const SerieResponseObject = {
+  id: series.id,
+  type: series.type,
+  title: series.title,
+  startYear: series.startYear,
+  endYear: series.endYear,
+  country: series.country,
+  description: series.description,
+  directedBy: series.directedBy,
+  starring: series.starring,
+  language: series.language,
+  genres: series.genres,
+  tags: series.tags,
+  image: series.image,
+};
+
+export const SerieProgressObject = {
+  media: SerieResponseObject,
+  progress: ProgressResponseObject,
+};
+
+// export type SerieType = (typeof serieEnum.enumValues)[number];
 
 // export type SerieSelect = InferSelectModel<typeof series>;
 // export type SerieInsert = InferInsertModel<typeof series>;
