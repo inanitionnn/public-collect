@@ -15,6 +15,7 @@ import { ParseModule } from './parse/parse.module';
 import config from './utils/config';
 import type { RedisClientOptions } from 'redis';
 import { DrizzleModule } from './drizzle/drizzle.module';
+import { ErrorsModule } from './errors/errors.module';
 import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
@@ -41,6 +42,7 @@ import * as redisStore from 'cache-manager-redis-store';
     SeasonsModule,
     ParseModule,
     DrizzleModule,
+    ErrorsModule,
   ],
   controllers: [],
 })

@@ -7,9 +7,11 @@ import { ComicsModule } from 'src/comics';
 import { BooksModule } from 'src/books';
 import { SeriesModule } from 'src/series';
 import { MediaController } from './media.controller';
+import { ErrorsModule } from 'src/errors/errors.module';
 
 @Module({
   imports: [
+    ErrorsModule,
     FilesModule,
     FilmsModule,
     SeriesModule,

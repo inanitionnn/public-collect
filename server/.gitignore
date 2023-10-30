@@ -1,5 +1,7 @@
 .env
 
+/drizzle
+
 # compiled output
 /dist
 /node_modules

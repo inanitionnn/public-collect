@@ -2,7 +2,12 @@ import { Controller, Get, Logger, Param, Query } from '@nestjs/common';
 import { ParseService } from './parse.service';
 import { MediaType } from 'src/media/types';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { WikiResponseDto } from './dto';
+import {
+  ImagesResponseDto,
+  SearchResponseDto,
+  TitleResponseDto,
+  WikiResponseDto,
+} from './dto';
 
 @ApiTags('parse')
 @Controller('parse')
@@ -10,98 +15,105 @@ export class ParseController {
   private readonly logger = new Logger(ParseController.name);
   constructor(private readonly parseService: ParseService) {}
 
-  // //#region Gpt
-  // @Get('title/:mediaType')
-  // @ApiOperation({
-  //   summary: 'Remember title and year in English',
-  //   description: 'Using GPT',
-  // })
-  // @ApiResponse({
-  //   type: GetTitleResponse,
-  //   description: 'Returns the name and year in English',
-  // })
-  // async getTitle(
-  //   @Query('query') query: string,
-  //   @Param('mediaType') mediaType: MediaType,
-  // ): Promise<GetTitleResponse> {
-  //   this.logger.verbose(
-  //     `/title | mediaType: (${mediaType}), query: (${query})`,
-  //   );
-  //   const result = await this.parseService.getTitle({ query, mediaType });
-  //   return result;
-  // }
+  //#region Gpt
+  @Get('title/:mediaType')
+  @ApiOperation({
+    summary: 'Gpt Title Parse',
+    description: 'Remember title and year in English',
+  })
+  async getTitle(
+    @Query('query') query: string,
+    @Param('mediaType') mediaType: MediaType,
+  ): Promise<TitleResponseDto> {
+    this.logger.verbose(
+      `Get (/title/:mediaType) | media type: (${mediaType}), query: (${query})`,
+    );
+    const result = await this.parseService.getTitle({ query, mediaType });
+    return result;
+  }
 
-  // @Get('fields/:mediaType')
-  // @ApiOperation({
-  //   summary: 'Fills in empty fields ',
-  //   description:
-  //     'Using Gpt. At the input, it gets all the fields you want to overwrite. In our case, the empty fields are (Tag, genre and plot fields are always included).',
-  // })
-  // async getFields(
-  //   @Query('title') title: string,
-  //   @Query('keys') keys: string,
-  //   @Param('mediaType') mediaType: MediaType,
-  // ): Promise<unknown> {
-  //   this.logger.verbose(
-  //     `/title | mediaType: (${mediaType}), title: (${title}), keys: (${keys})`,
-  //   );
-  //   const keyArr = keys.split(',').map((key) => key.trim());
-  //   const result = await this.parseService.getFields({
-  //     title,
-  //     mediaType,
-  //     keys: keyArr,
-  //   });
-  //   return result;
-  // }
-  // //#endregion Gpt
+  @Get('fields/:mediaType')
+  @ApiOperation({
+    summary: 'Gpt Fields parse ',
+    description:
+      'Gets all the fields of media you want to overwrite. In our case, the empty fields are. (Tag, genre and plot fields are always included).',
+  })
+  async fieldsParse(
+    @Query('title') title: string,
+    @Query('keys') keys: string,
+    @Param('mediaType') mediaType: MediaType,
+  ): Promise<unknown> {
+    this.logger.verbose(
+      `Get (/fields/:mediaType) | media type: (${mediaType}), title: (${title}), keys: (${keys})`,
+    );
+    const keyArr = keys.split(',').map((key) => key.trim());
+    const result = await this.parseService.fieldsParse({
+      title,
+      mediaType,
+      keys: keyArr,
+    });
+    return result;
+  }
+  //#endregion Gpt
 
-  // //#region Images
-  // @Get('images/:count/:mediaType')
-  // @ApiOperation({
-  //   summary: 'Get posters/covers by query',
-  //   description: 'Using Google API',
-  // })
-  // @ApiResponse({
-  //   type: GetTitleResponse,
-  //   description: 'Returns the list of image urls.',
-  // })
-  // async getImages(
-  //   @Query('title') title: string,
-  //   @Param('count') count: number,
-  //   @Param('mediaType') mediaType: MediaType,
-  // ): Promise<string[]> {
-  //   this.logger.verbose(
-  //     `/title | mediaType: (${mediaType}), query: (${title}), count: (${count})`,
-  //   );
-  //   const result = await this.parseService.getImages({
-  //     title,
-  //     mediaType,
-  //     count: Number(count),
-  //   });
-  //   return result;
-  // }
-  // //#endregion Images
+  //#region Images
+  @Get('images/:mediaType/:count')
+  @ApiOperation({
+    summary: 'Google Image Search',
+    description: 'Get posters/covers by query',
+  })
+  async getImages(
+    @Query('query') query: string,
+    @Param('count') count: number,
+    @Param('mediaType') mediaType: MediaType,
+  ): Promise<ImagesResponseDto> {
+    this.logger.verbose(
+      `Get (/images/:mediaType/:count) | media type: (${mediaType}), query: (${query}), count: (${count})`,
+    );
+    const result = await this.parseService.getImages({
+      query,
+      mediaType,
+      count: Number(count),
+    });
+    return result;
+  }
+  //#endregion Images
 
   //#region Wiki
   @Get('wiki/:mediaType')
   @ApiOperation({
-    summary: 'Get media info',
-    description: 'Using wiki parser',
-  })
-  @ApiResponse({
-    type: WikiResponseDto,
-    description: 'Returns parsed media',
+    summary: 'Wiki parse',
+    description: 'Parse media info by url',
   })
   async wikiParse(
     @Query('link') link: string,
     @Param('mediaType') mediaType: MediaType,
   ): Promise<WikiResponseDto> {
     this.logger.verbose(
-      `/wiki/:mediaType | mediaType: (${mediaType}), link: (${link})`,
+      `Get (/wiki/:mediaType) | media type: (${mediaType}), link: (${link})`,
     );
     const result = await this.parseService.wikiParse({
       link,
       mediaType,
+    });
+    return result;
+  }
+
+  @Get('wiki/search/:count')
+  @ApiOperation({
+    summary: 'Wiki Search',
+    description: 'Search wiki pages by query',
+  })
+  async wikiSearch(
+    @Query('query') query: string,
+    @Param('count') count: string,
+  ): Promise<SearchResponseDto[]> {
+    this.logger.verbose(
+      `Get (/wiki/search/:count) | query: (${query}), count: (${count})`,
+    );
+    const result = await this.parseService.wikiSearch({
+      query,
+      count: Number(count),
     });
     return result;
   }

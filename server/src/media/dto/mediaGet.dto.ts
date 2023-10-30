@@ -3,7 +3,7 @@ import { MediaEnum, MediaType } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class MediaGetDto {
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(MediaEnum) })
   @IsIn(Object.values(MediaEnum))
   mediaType: MediaType;
 

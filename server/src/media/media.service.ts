@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import MyError from 'src/utils/errors';
 import { FilesService } from 'src/files';
 import { FilmCreateDto, FilmUpdateDto, FilmsService } from 'src/films';
 import { ComicCreateDto, ComicUpdateDto, ComicsService } from 'src/comics';
@@ -24,11 +23,11 @@ import { SerieCreateDto, SerieUpdateDto, SeriesService } from 'src/series';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { validation } from 'src/utils/validation';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class MediaService {
   private readonly logger = new Logger(MediaService.name);
-  private readonly error = new MyError();
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly filesService: FilesService,
@@ -37,11 +36,14 @@ export class MediaService {
     private readonly seriesService: SeriesService,
     private readonly comicsService: ComicsService,
     private readonly booksService: BooksService,
+    private readonly errorsService: ErrorsService,
   ) {}
 
   public async create(dto: MediaCreateDto): Promise<MediaResponseDto> {
     this.logger.log('create');
-    await validation(MediaCreateDto, dto);
+    // TODO Create Progress
+    const error = await validation(MediaCreateDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const { media, mediaType } = dto;
 
     if (media.image) {
@@ -76,13 +78,14 @@ export class MediaService {
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 
   public async search(dto: MediaSearchDto): Promise<MediaResponseArrayDto> {
     this.logger.log('search');
-    await validation(MediaSearchDto, dto);
+    const error = await validation(MediaSearchDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const { mediaType, query } = dto;
     let result: MediaResponseArrayDto['media'];
 
@@ -94,19 +97,23 @@ export class MediaService {
       switch (mediaType) {
         case 'film': {
           result = await this.filmsService.search(query);
+          break;
         }
         case 'serie': {
           result = await this.seriesService.search(query);
+          break;
         }
         case 'comic': {
           result = await this.comicsService.search(query);
+          break;
         }
         case 'book': {
           result = await this.booksService.search(query);
+          break;
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
 
     await this.cacheManager.set(CACHE_KEY, result);
@@ -114,9 +121,10 @@ export class MediaService {
     return { media: result };
   }
 
-  public async getByid(dto: MediaGetDto): Promise<MediaProgressDto> {
+  public async getById(dto: MediaGetDto): Promise<MediaProgressDto> {
     this.logger.log('getByid');
-    await validation(MediaGetDto, dto);
+    const error = await validation(MediaGetDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const { mediaType, id } = dto;
 
     let result: MediaProgressDto['media'];
@@ -129,19 +137,26 @@ export class MediaService {
       switch (mediaType) {
         case 'film': {
           result = await this.filmsService.getByid(id);
+          break;
         }
         case 'serie': {
           result = await this.seriesService.getByid(id);
+          break;
         }
         case 'comic': {
           result = await this.comicsService.getByid(id);
+          break;
         }
         case 'book': {
           result = await this.booksService.getByid(id);
+          break;
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
+    }
+    if (!result) {
+      this.errorsService.notFound('Media not found');
     }
 
     await this.cacheManager.set(CACHE_KEY, result);
@@ -151,7 +166,8 @@ export class MediaService {
 
   public async getMany(dto: MediaGetManyDto): Promise<MediaResponseArrayDto> {
     this.logger.log('getMany');
-    await validation(MediaGetManyDto, dto);
+    const error = await validation(MediaGetManyDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const {
       mediaType,
       limit,
@@ -210,7 +226,7 @@ export class MediaService {
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
 
     await this.cacheManager.set(CACHE_KEY, result);
@@ -222,7 +238,8 @@ export class MediaService {
     dto: MediaGetRandomDto,
   ): Promise<MediaResponseArrayDto> {
     this.logger.log('getRandom');
-    await validation(MediaGetRandomDto, dto);
+    const error = await validation(MediaGetRandomDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const {
       mediaType,
       bookType,
@@ -281,7 +298,7 @@ export class MediaService {
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
 
     await this.cacheManager.set(CACHE_KEY, result);
@@ -291,7 +308,8 @@ export class MediaService {
 
   public async getGenres(dto: MediaGetGenresDto): Promise<MediaGenresDto> {
     this.logger.log('getGenres');
-    await validation(MediaGetGenresDto, dto);
+    const error = await validation(MediaGetGenresDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const { mediaType, bookType, comicType, filmType, serieType } = dto;
 
     let result: MediaGenresDto['genres'];
@@ -304,19 +322,23 @@ export class MediaService {
       switch (mediaType) {
         case 'film': {
           result = await this.filmsService.getGenres(filmType);
+          break;
         }
         case 'serie': {
           result = await this.seriesService.getGenres(serieType);
+          break;
         }
         case 'comic': {
           result = await this.comicsService.getGenres(comicType);
+          break;
         }
         case 'book': {
           result = await this.booksService.getGenres(bookType);
+          break;
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
 
     await this.cacheManager.set(CACHE_KEY, result);
@@ -328,7 +350,8 @@ export class MediaService {
     dto: MediaEmbeddingDto,
   ): Promise<MediaResponseArrayDto> {
     this.logger.log('embeddingSearch');
-    await validation(MediaEmbeddingDto, dto);
+    const error = await validation(MediaEmbeddingDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const { mediaType, limit, query } = dto;
 
     let result: MediaResponseArrayDto['media'];
@@ -343,19 +366,23 @@ export class MediaService {
       switch (mediaType) {
         case 'film': {
           result = await this.filmsService.embeddingSearch(embedding, limit);
+          break;
         }
         case 'serie': {
           result = await this.seriesService.embeddingSearch(embedding, limit);
+          break;
         }
         case 'comic': {
           result = await this.comicsService.embeddingSearch(embedding, limit);
+          break;
         }
         case 'book': {
           result = await this.booksService.embeddingSearch(embedding, limit);
+          break;
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
 
     await this.cacheManager.set(CACHE_KEY, result);
@@ -367,7 +394,8 @@ export class MediaService {
     dto: MediaGetNearestDto,
   ): Promise<MediaResponseArrayDto> {
     this.logger.log('getNearest');
-    await validation(MediaGetNearestDto, dto);
+    const error = await validation(MediaGetNearestDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const { mediaType, limit, id } = dto;
 
     let result: MediaResponseArrayDto['media'];
@@ -380,19 +408,23 @@ export class MediaService {
       switch (mediaType) {
         case 'film': {
           result = await this.filmsService.getNearest(id, limit);
+          break;
         }
         case 'serie': {
           result = await this.seriesService.getNearest(id, limit);
+          break;
         }
         case 'comic': {
           result = await this.comicsService.getNearest(id, limit);
+          break;
         }
         case 'book': {
           result = await this.booksService.getNearest(id, limit);
+          break;
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
 
     await this.cacheManager.set(CACHE_KEY, result);
@@ -402,7 +434,8 @@ export class MediaService {
 
   public async delete(dto: MediaGetDto): Promise<MediaResponseDto> {
     this.logger.log('delete');
-    await validation(MediaGetDto, dto);
+    const error = await validation(MediaGetDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const { mediaType, id } = dto;
 
     let result: MediaResponseDto['media'];
@@ -411,19 +444,23 @@ export class MediaService {
       switch (mediaType) {
         case 'film': {
           result = await this.filmsService.delete(id);
+          break;
         }
         case 'serie': {
           result = await this.seriesService.delete(id);
+          break;
         }
         case 'comic': {
           result = await this.comicsService.delete(id);
+          break;
         }
         case 'book': {
           result = await this.booksService.delete(id);
+          break;
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
 
     return { media: result };
@@ -431,7 +468,8 @@ export class MediaService {
 
   public async update(dto: MediaUpdateDto): Promise<MediaResponseDto> {
     this.logger.log('update');
-    await validation(MediaUpdateDto, dto);
+    const error = await validation(MediaUpdateDto, dto);
+    if (error) this.errorsService.badRequest(error);
     const { mediaType, id, media } = dto;
 
     let result: MediaResponseDto['media'];
@@ -444,22 +482,26 @@ export class MediaService {
         case 'film': {
           const film = media as FilmUpdateDto;
           result = await this.filmsService.update(id, film);
+          break;
         }
         case 'serie': {
           const serie = media as SerieUpdateDto;
           result = await this.seriesService.update(id, serie);
+          break;
         }
         case 'comic': {
           const comic = media as ComicUpdateDto;
           result = await this.comicsService.update(id, comic);
+          break;
         }
         case 'book': {
           const book = media as BookUpdateDto;
           result = await this.booksService.update(id, book);
+          break;
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
 
     return { media: result };

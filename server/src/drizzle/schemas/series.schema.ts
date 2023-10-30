@@ -1,20 +1,20 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  index,
   pgEnum,
   pgTable,
-  uuid,
-  varchar,
-  index,
   smallint,
   text,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { vector } from 'pgvector/drizzle-orm';
-import { orderToMedia } from '../orders';
-import { seasons } from '../seasons';
-import { collectionsToMedia } from '../collections';
-import { ProgressResponseObject, progress } from '../progress';
+import { collectionsToMedia } from './collections.shema';
+import { orderToMedia } from './orders.schema';
+import { progress } from './progress.schema';
+import { seasons } from './seasons.schema';
 
-const serieEnum = pgEnum('serieType', ['tv', 'anime', 'animated']);
+export const serieEnum = pgEnum('serieType', ['tv', 'anime', 'animated']);
 
 export const series = pgTable(
   'series',
@@ -57,29 +57,3 @@ export const seriesRelations = relations(series, ({ many, one }) => ({
   collectionsToSeries: many(collectionsToMedia),
   seasons: many(seasons),
 }));
-
-export const SerieResponseObject = {
-  id: series.id,
-  type: series.type,
-  title: series.title,
-  startYear: series.startYear,
-  endYear: series.endYear,
-  country: series.country,
-  description: series.description,
-  directedBy: series.directedBy,
-  starring: series.starring,
-  language: series.language,
-  genres: series.genres,
-  tags: series.tags,
-  image: series.image,
-};
-
-export const SerieProgressObject = {
-  media: SerieResponseObject,
-  progress: ProgressResponseObject,
-};
-
-// export type SerieType = (typeof serieEnum.enumValues)[number];
-
-// export type SerieSelect = InferSelectModel<typeof series>;
-// export type SerieInsert = InferInsertModel<typeof series>;

@@ -1,9 +1,9 @@
-import { IsIn, IsNumber, IsPositive, IsUUID } from 'class-validator';
+import { IsIn, IsInt, IsUUID, Min } from 'class-validator';
 import { MediaEnum, MediaType } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class MediaGetNearestDto {
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(MediaEnum) })
   @IsIn(Object.values(MediaEnum))
   mediaType: MediaType;
 
@@ -12,7 +12,7 @@ export class MediaGetNearestDto {
   id: string;
 
   @ApiProperty()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(1)
   limit: number;
 }

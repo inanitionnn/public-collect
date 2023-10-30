@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as GoogleImages from 'google-images';
-import { MediaType } from 'src/media/types';
 import { ImagesParseDto, ImagesResponseDto } from '../dto';
 
 type ImageType = {
@@ -19,7 +18,6 @@ type ImageType = {
 @Injectable()
 export class ImagesService {
   private readonly logger = new Logger(ImagesService.name);
-  // private readonly error = new MyError();
 
   private async loadImages(
     query: string,

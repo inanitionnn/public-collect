@@ -1,19 +1,19 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  index,
   pgEnum,
   pgTable,
-  uuid,
-  varchar,
-  index,
   smallint,
   text,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { vector } from 'pgvector/drizzle-orm';
-import { orderToMedia } from '../orders';
-import { collectionsToMedia } from '../collections';
-import { ProgressResponseObject, progress } from '../progress';
+import { orderToMedia } from './orders.schema';
+import { collectionsToMedia } from './collections.shema';
+import { progress } from './progress.schema';
 
-const comicEnum = pgEnum('comicType', ['manga', 'comic']);
+export const comicEnum = pgEnum('comicType', ['manga', 'comic']);
 
 export const comics = pgTable(
   'comics',
@@ -55,30 +55,3 @@ export const comicsRelations = relations(comics, ({ many, one }) => ({
   orderToComics: many(orderToMedia),
   collectionsToComics: many(collectionsToMedia),
 }));
-
-export const ComicResponseObject = {
-  id: comics.id,
-  type: comics.type,
-  title: comics.title,
-  startYear: comics.startYear,
-  endYear: comics.endYear,
-  country: comics.country,
-  description: comics.description,
-  author: comics.author,
-  language: comics.language,
-  volumes: comics.volumes,
-  genres: comics.genres,
-  tags: comics.tags,
-  image: comics.image,
-};
-
-export const ComicProgressObject = {
-  media: ComicResponseObject,
-  progress: ProgressResponseObject,
-};
-
-// export type ComicType = (typeof comicEnum.enumValues)[number];
-
-// export type ComicSelect = InferSelectModel<typeof comics>;
-
-// export type ComicInsert = InferInsertModel<typeof comics>;

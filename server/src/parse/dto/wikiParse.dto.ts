@@ -3,7 +3,7 @@ import { IsIn, IsUrl } from 'class-validator';
 import { MediaEnum, MediaType } from 'src/media';
 
 export class WikiParseDto {
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(MediaEnum) })
   @IsIn(Object.values(MediaEnum))
   mediaType: MediaType;
 

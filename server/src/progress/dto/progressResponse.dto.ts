@@ -1,21 +1,18 @@
 import {
   IsDate,
   IsIn,
-  IsNumber,
+  IsInt,
   IsOptional,
-  IsPositive,
   IsString,
   Length,
+  Max,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { WatchedEnum, WatchedType } from '../types';
-import { ProgressDto } from './progress.dto';
 
-export class ProgressResponseDto
-  implements
-    Omit<ProgressDto, 'filmId' | 'serieId' | 'comicId' | 'bookId' | 'id'>
-{
-  @ApiProperty()
+export class ProgressResponseDto {
+  @ApiProperty({ enum: Object.values(WatchedEnum) })
   @IsOptional()
   @IsIn(Object.values(WatchedEnum))
   watched?: WatchedType;
@@ -33,8 +30,9 @@ export class ProgressResponseDto
 
   @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(1)
+  @Max(10)
   rate?: number;
 
   @ApiProperty()

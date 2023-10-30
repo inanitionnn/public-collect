@@ -3,6 +3,7 @@ import {
   IsPositive,
   IsString,
   IsUrl,
+  Min,
   MinLength,
 } from 'class-validator';
 export class AppEnvironmentVariables {
@@ -11,19 +12,19 @@ export class AppEnvironmentVariables {
   CLIENT_URL: string;
 
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   PORT: number;
 
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   IMAGE_HEIGHT: number;
 
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   IMAGE_WIDTH: number;
 
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   CACHE_SECONDS: number;
 
   @IsString()

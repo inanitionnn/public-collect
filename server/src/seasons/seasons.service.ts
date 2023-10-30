@@ -1,24 +1,19 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import MyError from 'src/utils/errors';
-import {
-  SeasonCreateDto,
-  SeasonResponseDto,
-  SeasonResponseObject,
-  SeasonUpdateDto,
-} from './dto';
+import { SeasonCreateDto, SeasonResponseDto, SeasonUpdateDto } from './dto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from 'src/drizzle/schema';
 import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class SeasonsService {
   private readonly logger = new Logger(SeasonsService.name);
-  private readonly error = new MyError();
 
   constructor(
     @Inject(PG_CONNECTION)
     private db: PostgresJsDatabase<typeof schema>,
+    private readonly errorsService: ErrorsService,
   ) {}
 
   public async create(
@@ -35,10 +30,10 @@ export class SeasonsService {
       const result = await this.db
         .insert(schema.seasons)
         .values(insertSeasons)
-        .returning(SeasonResponseObject);
+        .returning(schema.SeasonResponseObject);
       return result;
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 
@@ -46,12 +41,12 @@ export class SeasonsService {
     this.logger.log('get');
     try {
       const result = await this.db
-        .select(SeasonResponseObject)
+        .select(schema.SeasonResponseObject)
         .from(schema.seasons)
         .where(eq(schema.seasons.seriesId, seriesId));
       return result;
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 
@@ -104,7 +99,7 @@ export class SeasonsService {
         resultSeasons.push(result[0]);
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
     return resultSeasons.sort((a, b) => a.number - b.number);
   }
@@ -127,7 +122,7 @@ export class SeasonsService {
 
       return result;
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 
@@ -141,7 +136,7 @@ export class SeasonsService {
         .where(eq(schema.seasons.seriesId, seriesId));
       return result;
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 }

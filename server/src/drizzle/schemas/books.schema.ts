@@ -1,19 +1,19 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  index,
   pgEnum,
   pgTable,
-  uuid,
-  varchar,
-  index,
   smallint,
   text,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { vector } from 'pgvector/drizzle-orm';
-import { collectionsToMedia } from '../collections';
-import { ProgressResponseObject, progress } from '../progress';
-import { orderToMedia } from 'src/orders';
+import { progress } from './progress.schema';
+import { orderToMedia } from './orders.schema';
+import { collectionsToMedia } from './collections.shema';
 
-const bookEnum = pgEnum('bookType', ['fiction', 'nonFiction']);
+export const bookEnum = pgEnum('bookType', ['fiction', 'nonFiction']);
 
 export const books = pgTable(
   'books',
@@ -54,28 +54,3 @@ export const booksRelations = relations(books, ({ many, one }) => ({
   orderToBooks: many(orderToMedia),
   collectionsToBooks: many(collectionsToMedia),
 }));
-
-export const BookResponseObject = {
-  id: books.id,
-  type: books.type,
-  title: books.title,
-  year: books.year,
-  country: books.country,
-  description: books.description,
-  author: books.author,
-  language: books.language,
-  pages: books.pages,
-  genres: books.genres,
-  tags: books.tags,
-  image: books.image,
-};
-
-export const BookProgressObject = {
-  media: BookResponseObject,
-  progress: ProgressResponseObject,
-};
-
-// export type BookType = (typeof bookEnum.enumValues)[number];
-
-// export type BookSelect = InferSelectModel<typeof books>;
-// export type BookInsert = InferInsertModel<typeof books>;

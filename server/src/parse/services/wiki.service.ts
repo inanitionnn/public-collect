@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import MyError from 'src/utils/errors';
 import { Keywords } from '../constants';
 import { FilmType, FilmWikiDto } from 'src/films';
 import { SerieType, SerieWikiDto } from 'src/series';
@@ -7,6 +6,7 @@ import { BookType, BookWikiDto } from 'src/books';
 import { ComicType, ComicWikiDto } from 'src/comics';
 import { SeasonWikiDto } from 'src/seasons';
 import { WikiParseDto, WikiResponseDto } from '../dto';
+import { ErrorsService } from 'src/errors/errors.service';
 const wtf = require('wtf_wikipedia');
 wtf.extend(require('wtf-plugin-summary'));
 wtf.extend(require('wtf-plugin-classify'));
@@ -14,8 +14,7 @@ wtf.extend(require('wtf-plugin-classify'));
 @Injectable()
 export class WikiService {
   private readonly logger = new Logger(WikiService.name);
-  private readonly error = new MyError();
-  constructor() {}
+  constructor(private errorsService: ErrorsService) {}
   //#region Description
 
   private async getDescription(data: any): Promise<string | null> {
@@ -390,10 +389,10 @@ export class WikiService {
     const data: any | null = await wtf.fetch(link);
 
     if (!data) {
-      throw this.error.notFound('Page not found');
+      throw this.errorsService.notFound('Page not found');
     }
     if (!this.checkSummary(data) && !this.checkClassify(data)) {
-      throw this.error.badRequest('Incorrect page');
+      throw this.errorsService.badRequest('Incorrect page');
     }
 
     let image = '';

@@ -6,6 +6,9 @@ import {
 } from '@nestjs/platform-fastify';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+// import metadata from './metadata';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -14,16 +17,16 @@ async function bootstrap() {
   );
   const port = process.env.PORT || 3000;
   const logger = new Logger('Main');
+  const cacheManager: Cache = app.get(CACHE_MANAGER);
+  await cacheManager.reset();
+  app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe());
 
   const config = new DocumentBuilder()
     .setTitle('Collect')
     .setVersion('1.0')
     .build();
-
-  app.setGlobalPrefix('api');
-
-  app.useGlobalPipes(new ValidationPipe());
-
+  // await SwaggerModule.loadPluginMetadata(metadata);
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 

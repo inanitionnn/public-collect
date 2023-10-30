@@ -1,12 +1,25 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty, refs } from '@nestjs/swagger';
 import { IsArray } from 'class-validator';
-import { BookProgressDto, BookResponseDto } from 'src/books';
-import { ComicProgressDto, ComicResponseDto } from 'src/comics';
-import { FilmProgressDto, FilmResponseDto } from 'src/films';
-import { SerieProgressDto, SerieResponseDto } from 'src/series';
+import { BookResponseDto } from 'src/books';
+import { ComicResponseDto } from 'src/comics';
+import { FilmResponseDto } from 'src/films';
+import { SerieResponseDto } from 'src/series';
 
+@ApiExtraModels(
+  FilmResponseDto,
+  SerieResponseDto,
+  ComicResponseDto,
+  BookResponseDto,
+)
 export class MediaResponseDto {
-  @ApiProperty()
+  @ApiProperty({
+    oneOf: refs(
+      FilmResponseDto,
+      SerieResponseDto,
+      ComicResponseDto,
+      BookResponseDto,
+    ),
+  })
   media:
     | FilmResponseDto
     | SerieResponseDto
@@ -14,8 +27,22 @@ export class MediaResponseDto {
     | BookResponseDto;
 }
 
+@ApiExtraModels(
+  FilmResponseDto,
+  SerieResponseDto,
+  ComicResponseDto,
+  BookResponseDto,
+)
 export class MediaResponseArrayDto {
-  @ApiProperty()
+  @ApiProperty({
+    oneOf: refs(
+      FilmResponseDto,
+      SerieResponseDto,
+      ComicResponseDto,
+      BookResponseDto,
+    ),
+    isArray: true,
+  })
   @IsArray()
   media:
     | FilmResponseDto[]

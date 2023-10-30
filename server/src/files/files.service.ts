@@ -3,16 +3,17 @@ import path from 'path';
 import fs from 'fs';
 import * as uuid from 'uuid';
 import download from 'image-downloader';
-import MyError from 'src/utils/errors';
 import { FolderType } from './types';
 import sharp from 'sharp';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
-  private readonly error = new MyError();
   private readonly imageHeight = +process.env.IMAGE_HEIGHT;
   private readonly imageWidth = +process.env.IMAGE_WIDTH;
+
+  constructor(private errorsService: ErrorsService) {}
 
   //#region Private
 
@@ -44,12 +45,12 @@ export class FilesService {
       .resize(width, height)
       .toFile(newFilePath)
       .catch((error) => {
-        this.error.internalServerError(error);
+        this.errorsService.internalServerError(error);
       });
 
     fs.unlink(oldFilePath, (error) => {
       if (error) {
-        this.error.internalServerError(error);
+        this.errorsService.internalServerError(error);
       }
     });
   }
@@ -63,12 +64,12 @@ export class FilesService {
         extractFilename: false,
       });
       if (!file) {
-        this.error.internalServerError('Downloading error');
+        this.errorsService.internalServerError('Downloading error');
       }
 
       return file.filename;
     } catch (error) {
-      this.error.internalServerError(
+      this.errorsService.internalServerError(
         'Downloading error. Please try another image',
       );
     }
@@ -93,7 +94,7 @@ export class FilesService {
     this.logger.log('deleteFile');
     fs.unlink(path, (error) => {
       if (error) {
-        this.error.internalServerError(error);
+        this.errorsService.internalServerError(error);
       }
     });
   }
@@ -111,7 +112,7 @@ export class FilesService {
       destinationPath,
       (error: NodeJS.ErrnoException | null) => {
         if (error) {
-          this.error.internalServerError(error);
+          this.errorsService.internalServerError(error);
         }
       },
     );
@@ -133,7 +134,7 @@ export class FilesService {
     this.logger.log('download');
 
     if (!url) {
-      this.error.badRequest('Empty query');
+      this.errorsService.badRequest('Empty query');
     }
 
     const uuidName = uuid.v4();
@@ -206,7 +207,7 @@ export class FilesService {
         }
       }
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 

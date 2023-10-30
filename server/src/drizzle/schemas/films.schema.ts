@@ -1,19 +1,19 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  index,
   pgEnum,
   pgTable,
-  uuid,
-  varchar,
-  index,
   smallint,
   text,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { vector } from 'pgvector/drizzle-orm';
-import { orderToMedia } from '../orders';
-import { collectionsToMedia } from '../collections';
-import { ProgressResponseObject, progress } from '../progress';
+import { progress } from './progress.schema';
+import { collectionsToMedia } from './collections.shema';
+import { orderToMedia } from './orders.schema';
 
-const filmEnum = pgEnum('filmType', ['movie', 'anime', 'animated']);
+export const filmEnum = pgEnum('filmType', ['movie', 'anime', 'animated']);
 
 export const films = pgTable(
   'films',
@@ -57,30 +57,3 @@ export const filmsRelations = relations(films, ({ many, one }) => ({
   orderToFilms: many(orderToMedia),
   collectionsToFilms: many(collectionsToMedia),
 }));
-
-export const FilmResponseObject = {
-  id: films.id,
-  type: films.type,
-  title: films.title,
-  year: films.year,
-  country: films.country,
-  description: films.description,
-  directedBy: films.directedBy,
-  starring: films.starring,
-  language: films.language,
-  runTime: films.runTime,
-  boxOffice: films.boxOffice,
-  budget: films.budget,
-  genres: films.genres,
-  tags: films.tags,
-  image: films.image,
-};
-export const FilmProgressObject = {
-  media: FilmResponseObject,
-  progress: ProgressResponseObject,
-};
-// export type FilmType = (typeof filmEnum.enumValues)[number];
-
-// export type FilmSelect = InferSelectModel<typeof films>;
-
-// export type FilmInsert = InferInsertModel<typeof films>;

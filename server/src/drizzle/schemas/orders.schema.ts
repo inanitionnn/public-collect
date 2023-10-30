@@ -1,16 +1,16 @@
 import { relations } from 'drizzle-orm';
 import {
   pgTable,
-  uuid,
-  varchar,
-  text,
   primaryKey,
   smallint,
+  text,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { films } from '../films';
-import { series } from '../series';
-import { comics } from '../comics';
-import { books } from '../books';
+import { films } from './films.schema';
+import { series } from './series.schema';
+import { comics } from './comics.schema';
+import { books } from './books.schema';
 
 export const orders = pgTable('orders', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -22,7 +22,6 @@ export const ordersRelations = relations(orders, ({ many }) => ({
   orderToMedias: many(orderToMedia),
 }));
 
-//#region Media
 export const orderToMedia = pgTable(
   'orders_to_media',
   {
@@ -70,4 +69,3 @@ export const orderToMediaRelations = relations(orderToMedia, ({ one }) => ({
     references: [books.id],
   }),
 }));
-//#endregion Media

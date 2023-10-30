@@ -1,105 +1,94 @@
-import { FilmDto } from './film.dto';
 import {
   IsArray,
   IsIn,
+  IsInt,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
   Length,
+  Max,
+  Min,
 } from 'class-validator';
 import { FilmEnum, FilmType } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class FilmUpdateDto implements Omit<FilmDto, 'id'> {
-  @ApiProperty()
+export class FilmUpdateDto {
+  @ApiProperty({ enum: Object.values(FilmEnum) })
   @IsOptional()
   @IsIn(Object.values(FilmEnum))
   type?: FilmType;
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   @Length(1, 256)
   title?: string;
 
-  @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
+  @Max(new Date().getFullYear() + 20)
   year?: number;
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   country?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   directedBy?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   starring?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   language?: string[];
 
-  @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
   runTime?: number;
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   @Length(1, 256)
   boxOffice?: string;
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   @Length(1, 256)
   budget?: string;
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   genres?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   tags?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   image?: string;
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true })

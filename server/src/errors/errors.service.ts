@@ -1,6 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import * as createError from 'http-errors';
 
-export default class MyError {
+@Injectable()
+export class ErrorsService {
   private create(code: number, error?: any) {
     let errorText = '';
 

@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, uuid, varchar, index, smallint } from 'drizzle-orm/pg-core';
-import { series } from '../series';
+import { index, pgTable, smallint, uuid, varchar } from 'drizzle-orm/pg-core';
+import { series } from './series.schema';
 
 export const seasons = pgTable(
   'seasons',
@@ -25,6 +25,3 @@ export const seasonsRelations = relations(seasons, ({ one }) => ({
     references: [series.id],
   }),
 }));
-
-// export type SeasonSelect = InferSelectModel<typeof seasons>;
-// export type SeasonInsert = InferInsertModel<typeof seasons>;

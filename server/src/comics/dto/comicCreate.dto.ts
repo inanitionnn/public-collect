@@ -1,91 +1,83 @@
 import {
   IsArray,
   IsIn,
+  IsInt,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
   Length,
+  Max,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ComicEnum, ComicType } from '../types';
-import { ComicDto } from './comic.dto';
 
-export class ComicCreateDto implements Omit<ComicDto, 'id'> {
-  @ApiProperty()
+export class ComicCreateDto {
+  @ApiProperty({ enum: Object.values(ComicEnum) })
   @IsOptional()
   @IsIn(Object.values(ComicEnum))
   type?: ComicType;
 
-  @ApiProperty()
   @IsString()
   @Length(1, 256)
   title: string;
 
-  @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
+  @Max(new Date().getFullYear() + 20)
   startYear?: number;
 
-  @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
+  @Max(new Date().getFullYear() + 20)
   endYear?: number;
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   country?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   author?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   language?: string[];
 
-  @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
   volumes?: number;
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   genres?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Length(1, 256, { each: true })
   tags?: string[];
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   image?: string;
 
-  @ApiProperty()
   @IsArray()
   @IsNumber({}, { each: true })
   embedding: number[];

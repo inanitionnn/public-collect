@@ -1,21 +1,21 @@
-import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm';
 import {
+  index,
+  pgEnum,
   pgTable,
-  uuid,
-  varchar,
-  text,
   primaryKey,
   smallint,
-  pgEnum,
+  text,
   timestamp,
-  index,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { films } from '../films';
-import { series } from '../series';
-import { comics } from '../comics';
-import { books } from '../books';
+import { films } from './films.schema';
+import { series } from './series.schema';
+import { comics } from './comics.schema';
+import { books } from './books.schema';
+import { relations } from 'drizzle-orm';
 
-const watchedEnum = pgEnum('watched', [
+export const watchedEnum = pgEnum('watched', [
   'reviewing',
   'viewing',
   'completed',
@@ -66,9 +66,3 @@ export const ProgressResponseObject = {
   rate: progress.rate,
   createdAt: progress.createdAt,
 };
-
-// export type WatchedType = (typeof WatchedEnum.enumValues)[number];
-
-// export type ProgressSelect = InferSelectModel<typeof progress>;
-
-// export type ProgressInsert = InferInsertModel<typeof progress>;

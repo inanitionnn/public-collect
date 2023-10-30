@@ -1,19 +1,19 @@
 import {
   IsArray,
   IsIn,
-  IsNumber,
+  IsInt,
   IsOptional,
   IsPositive,
   IsString,
-  IsUUID,
   Length,
+  Max,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { BookEnum, BookType } from '../types';
-import { BookDto } from './book.dto';
 
-export class BookWikiDto implements Omit<BookDto, 'id' | 'embedding'> {
-  @ApiProperty()
+export class BookWikiDto {
+  @ApiProperty({ enum: Object.values(BookEnum) })
   @IsIn(Object.values(BookEnum))
   type: BookType;
 
@@ -24,8 +24,9 @@ export class BookWikiDto implements Omit<BookDto, 'id' | 'embedding'> {
 
   @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
+  @Max(new Date().getFullYear() + 20)
   year?: number;
 
   @ApiProperty()
@@ -56,8 +57,8 @@ export class BookWikiDto implements Omit<BookDto, 'id' | 'embedding'> {
 
   @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
   pages?: number;
 
   @ApiProperty()

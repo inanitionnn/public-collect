@@ -1,34 +1,32 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { SeasonDto } from './season.dto';
 import {
+  IsInt,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
   Length,
+  Max,
+  Min,
 } from 'class-validator';
 
-export class SeasonCreateDto implements Omit<SeasonDto, 'id' | 'seriesId'> {
-  @ApiProperty()
-  @IsNumber()
-  @IsPositive()
+export class SeasonCreateDto {
+  @IsInt()
+  @Min(0)
   number: number;
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   @Length(1, 256)
   title?: string;
 
-  @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
   episodes?: number;
 
-  @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(1)
+  @Max(10)
   rate?: number;
 }

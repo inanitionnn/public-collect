@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsInt, IsString, Min } from 'class-validator';
 
 export class SearchParseDto {
   @ApiProperty()
@@ -7,6 +7,7 @@ export class SearchParseDto {
   query: string;
 
   @ApiProperty()
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   count: number;
 }

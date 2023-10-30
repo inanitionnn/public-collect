@@ -1,4 +1,4 @@
-import { IsIn, IsNumber, IsOptional, IsPositive } from 'class-validator';
+import { IsIn, IsInt, IsOptional, Min } from 'class-validator';
 import { MediaEnum, MediaType, SortEnum, SortType } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 import { FilmEnum, FilmType } from 'src/films';
@@ -9,46 +9,46 @@ import { WatchedEnum, WatchedType } from 'src/progress';
 
 export class MediaGetManyDto {
   @ApiProperty()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(1)
   limit: number;
 
   @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(0)
   page?: number;
 
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(MediaEnum) })
   @IsIn(Object.values(MediaEnum))
   mediaType: MediaType;
 
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(SortEnum) })
   @IsOptional()
   @IsIn(Object.values(SortEnum))
   sortType?: SortType;
 
-  @ApiProperty()
+  @ApiProperty({ enum: [...Object.values(WatchedEnum), 'rated'] })
   @IsOptional()
   @IsIn([Object.values(WatchedEnum), 'rated'])
   watched?: WatchedType | 'rated';
 
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(FilmEnum) })
   @IsOptional()
   @IsIn(Object.values(FilmEnum))
   filmType?: FilmType;
 
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(SerieEnum) })
   @IsOptional()
   @IsIn(Object.values(SerieEnum))
   serieType?: SerieType;
 
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(ComicEnum) })
   @IsOptional()
   @IsIn(Object.values(ComicEnum))
   comicType?: ComicType;
 
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(BookEnum) })
   @IsOptional()
   @IsIn(Object.values(BookEnum))
   bookType?: BookType;

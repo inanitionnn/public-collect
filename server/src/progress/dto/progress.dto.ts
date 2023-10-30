@@ -1,12 +1,13 @@
 import {
   IsDate,
   IsIn,
-  IsNumber,
+  IsInt,
   IsOptional,
-  IsPositive,
   IsString,
   IsUUID,
   Length,
+  Max,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { WatchedEnum, WatchedType } from '../types';
@@ -54,8 +55,9 @@ export class ProgressDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(1)
+  @Max(10)
   rate?: number;
 
   @ApiProperty()

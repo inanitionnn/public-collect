@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
-import MyError from 'src/utils/errors';
 import { Promts } from '../constants';
 import { FieldsParseDto, TitleParseDto, TitleResponseDto } from '../dto';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class GptService {
   private readonly logger = new Logger(GptService.name);
-  private readonly error = new MyError();
+  constructor(private errorsService: ErrorsService) {}
 
   //#region Private
 
@@ -49,7 +49,7 @@ export class GptService {
 
       return answer;
     } catch (err) {
-      this.error.internalServerError('Send message to OpenAI error');
+      this.errorsService.internalServerError('Send message to OpenAI error');
     }
   }
 
@@ -110,7 +110,7 @@ export class GptService {
       100,
     );
     if (!gptAnswer) {
-      this.error.notFound('Nothing was found for your search');
+      this.errorsService.notFound('Nothing was found for your search');
     }
     const jsonAnswer = this.convertToJson(gptAnswer);
     const result: TitleResponseDto = {
@@ -118,7 +118,7 @@ export class GptService {
       year: Number(jsonAnswer.year),
     };
     if (!result.title && !result.year) {
-      this.error.notFound('Not found title and year');
+      this.errorsService.notFound('Not found title and year');
     }
     return result;
   }

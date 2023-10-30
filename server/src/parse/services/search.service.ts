@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { load } from 'cheerio';
-import MyError from 'src/utils/errors';
 import { SearchParseDto, SearchResponseDto } from '../dto';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
-  private readonly error = new MyError();
+  constructor(private errorsService: ErrorsService) {}
 
   //#region Private
 
@@ -16,7 +16,7 @@ export class SearchService {
     const notEnglishRegex = /[^\u0000-\u007F…–‘’“”]/;
     const isNotEnglish = notEnglishRegex.test(input);
     if (isNotEnglish) {
-      this.error.badRequest('Please use English');
+      this.errorsService.badRequest('Please use English');
     }
   }
 
@@ -56,7 +56,7 @@ export class SearchService {
       const response = await axios.get(url);
 
       if (response.status !== 200) {
-        this.error.internalServerError('Parse error');
+        this.errorsService.internalServerError('Parse error');
       }
 
       const body = await response.data;
@@ -86,12 +86,12 @@ export class SearchService {
       }
 
       if (!results.length) {
-        this.error.notFound('Not found wiki pages by this url');
+        this.errorsService.notFound('Not found wiki pages by this url');
       }
 
       return results;
     } catch (error) {
-      this.error.internalServerError('Parse error');
+      this.errorsService.internalServerError('Parse error');
     }
   }
 }

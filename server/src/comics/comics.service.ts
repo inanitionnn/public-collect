@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import MyError from 'src/utils/errors';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   ComicCreateDto,
@@ -25,15 +24,16 @@ import { ComicType } from './types';
 import { SortType } from 'src/media';
 import { WatchedType } from 'src/progress';
 import { l2Distance } from 'pgvector/drizzle-orm';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class ComicsService {
   private readonly logger = new Logger(ComicsService.name);
-  private readonly error = new MyError();
 
   constructor(
     @Inject(PG_CONNECTION)
     private db: PostgresJsDatabase<typeof schema>,
+    private errorsService: ErrorsService,
   ) {}
 
   public async create(comic: ComicCreateDto): Promise<ComicResponseDto> {
@@ -46,7 +46,7 @@ export class ComicsService {
         .returning(schema.ComicResponseObject);
       return;
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 
@@ -62,7 +62,7 @@ export class ComicsService {
         );
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -74,13 +74,13 @@ export class ComicsService {
         .select(schema.ComicProgressObject)
         .from(schema.comics)
         .where(eq(schema.comics.id, id))
-        .innerJoin(
+        .leftJoin(
           schema.progress,
           eq(schema.progress.comicId, schema.comics.id),
         );
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -96,10 +96,7 @@ export class ComicsService {
     const query = this.db
       .select(schema.ComicResponseObject)
       .from(schema.comics)
-      .innerJoin(
-        schema.progress,
-        eq(schema.progress.comicId, schema.comics.id),
-      );
+      .leftJoin(schema.progress, eq(schema.progress.comicId, schema.comics.id));
 
     if (comicType) query.where(eq(schema.comics.type, comicType));
 
@@ -132,7 +129,7 @@ export class ComicsService {
       const result = await query;
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -171,7 +168,7 @@ export class ComicsService {
       const result = await query;
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -185,7 +182,7 @@ export class ComicsService {
         .where(eq(schema.comics.type, comicType));
       return result[0].genres;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -202,7 +199,7 @@ export class ComicsService {
         .returning(schema.ComicResponseObject);
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -219,7 +216,7 @@ export class ComicsService {
         .limit(limit);
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -241,7 +238,7 @@ export class ComicsService {
         .limit(limit);
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -255,7 +252,7 @@ export class ComicsService {
         .returning(schema.ComicResponseObject);
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 }

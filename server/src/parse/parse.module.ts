@@ -7,8 +7,10 @@ import {
   SearchService,
   WikiService,
 } from './services';
+import { ErrorsModule } from 'src/errors/errors.module';
 
 @Module({
+  imports: [ErrorsModule],
   exports: [ParseService],
   providers: [
     ParseService,

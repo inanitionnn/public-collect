@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import MyError from 'src/utils/errors';
 import {
   SerieCreateDto,
   SerieProgressDto,
@@ -26,16 +25,17 @@ import * as schema from 'src/drizzle/schema';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
 import { SerieType } from './types';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class SeriesService {
   private readonly logger = new Logger(SeriesService.name);
-  private readonly error = new MyError();
 
   constructor(
     @Inject(PG_CONNECTION)
     private db: PostgresJsDatabase<typeof schema>,
     private readonly seasonsService: SeasonsService,
+    private readonly errorsService: ErrorsService,
   ) {}
 
   public async create(dto: SerieCreateDto): Promise<SerieResponseDto> {
@@ -53,7 +53,7 @@ export class SeriesService {
       );
       return { ...result[0], seasons };
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 
@@ -68,7 +68,7 @@ export class SeriesService {
         );
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -80,7 +80,7 @@ export class SeriesService {
         .select(schema.SerieProgressObject)
         .from(schema.series)
         .where(eq(schema.series.id, id))
-        .innerJoin(
+        .leftJoin(
           schema.progress,
           eq(schema.progress.serieId, schema.series.id),
         );
@@ -89,7 +89,7 @@ export class SeriesService {
         progress: result[0].progress,
       };
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -105,10 +105,7 @@ export class SeriesService {
     const query = this.db
       .select(schema.SerieResponseObject)
       .from(schema.series)
-      .innerJoin(
-        schema.progress,
-        eq(schema.progress.serieId, schema.series.id),
-      );
+      .leftJoin(schema.progress, eq(schema.progress.serieId, schema.series.id));
 
     if (serieType) query.where(eq(schema.series.type, serieType));
 
@@ -141,7 +138,7 @@ export class SeriesService {
       const result = await query;
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -180,7 +177,7 @@ export class SeriesService {
       const result = await query;
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -194,7 +191,7 @@ export class SeriesService {
         .where(eq(schema.series.type, serieType));
       return result[0].genres;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -214,7 +211,7 @@ export class SeriesService {
         .returning(schema.SerieResponseObject);
       return { ...result[0], seasons };
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -231,7 +228,7 @@ export class SeriesService {
         .limit(limit);
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -253,7 +250,7 @@ export class SeriesService {
         .limit(limit);
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -267,7 +264,7 @@ export class SeriesService {
         .returning(schema.SerieResponseObject);
       return { ...result[0], seasons };
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 }

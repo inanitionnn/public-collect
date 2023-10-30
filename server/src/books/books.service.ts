@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import MyError from 'src/utils/errors';
 import {
   eq,
   sql,
@@ -25,15 +24,15 @@ import { SortType } from 'src/media';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from 'src/drizzle/schema';
 import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class BooksService {
   private readonly logger = new Logger(BooksService.name);
-  private readonly error = new MyError();
-
   constructor(
     @Inject(PG_CONNECTION)
     private db: PostgresJsDatabase<typeof schema>,
+    private errorsService: ErrorsService,
   ) {}
 
   public async create(book: BookCreateDto): Promise<BookResponseDto> {
@@ -46,7 +45,7 @@ export class BooksService {
         .returning(schema.BookResponseObject);
       return result[0];
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 
@@ -62,7 +61,7 @@ export class BooksService {
         );
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -74,13 +73,10 @@ export class BooksService {
         .select(schema.BookProgressObject)
         .from(schema.books)
         .where(eq(schema.books.id, id))
-        .innerJoin(
-          schema.progress,
-          eq(schema.progress.bookId, schema.books.id),
-        );
+        .leftJoin(schema.progress, eq(schema.progress.bookId, schema.books.id));
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -96,7 +92,7 @@ export class BooksService {
     const query = this.db
       .select(schema.BookResponseObject)
       .from(schema.books)
-      .innerJoin(schema.progress, eq(schema.progress.bookId, schema.books.id));
+      .leftJoin(schema.progress, eq(schema.progress.bookId, schema.books.id));
 
     if (bookType) query.where(eq(schema.books.type, bookType));
 
@@ -129,7 +125,7 @@ export class BooksService {
       const result = await query;
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -166,7 +162,7 @@ export class BooksService {
       const result = await query;
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -180,7 +176,7 @@ export class BooksService {
         .where(eq(schema.books.type, bookType));
       return result[0].genres;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -197,7 +193,7 @@ export class BooksService {
         .returning(schema.BookResponseObject);
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -214,7 +210,7 @@ export class BooksService {
         .limit(limit);
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -236,7 +232,7 @@ export class BooksService {
         .limit(limit);
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -250,7 +246,7 @@ export class BooksService {
         .returning(schema.BookResponseObject);
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 }

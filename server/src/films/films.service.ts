@@ -6,7 +6,6 @@ import {
   FilmResponseDto,
   FilmUpdateDto,
 } from './dto';
-import MyError from 'src/utils/errors';
 import { WatchedType } from 'src/progress';
 import {
   eq,
@@ -25,15 +24,15 @@ import { l2Distance } from 'pgvector/drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from 'src/drizzle/schema';
 import { PG_CONNECTION } from 'src/drizzle/drizzle.module';
+import { ErrorsService } from 'src/errors/errors.service';
 
 @Injectable()
 export class FilmsService {
   private readonly logger = new Logger(FilmsService.name);
-  private readonly error = new MyError();
-
   constructor(
     @Inject(PG_CONNECTION)
     private db: PostgresJsDatabase<typeof schema>,
+    private errorsService: ErrorsService,
   ) {}
 
   public async create(film: FilmCreateDto): Promise<FilmResponseDto> {
@@ -45,7 +44,7 @@ export class FilmsService {
         .returning(schema.FilmResponseObject);
       return result[0];
     } catch (error) {
-      this.error.internalServerError(error);
+      this.errorsService.internalServerError(error);
     }
   }
 
@@ -61,7 +60,7 @@ export class FilmsService {
         );
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -73,13 +72,11 @@ export class FilmsService {
         .select(schema.FilmProgressObject)
         .from(schema.films)
         .where(eq(schema.films.id, id))
-        .innerJoin(
-          schema.progress,
-          eq(schema.progress.filmId, schema.films.id),
-        );
+        .leftJoin(schema.progress, eq(schema.progress.filmId, schema.films.id));
+      console.log(result[0]);
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -95,7 +92,7 @@ export class FilmsService {
     const query = this.db
       .select(schema.FilmResponseObject)
       .from(schema.films)
-      .innerJoin(schema.progress, eq(schema.progress.filmId, schema.films.id));
+      .leftJoin(schema.progress, eq(schema.progress.filmId, schema.films.id));
 
     if (filmType) query.where(eq(schema.films.type, filmType));
 
@@ -128,7 +125,7 @@ export class FilmsService {
       const result = await query;
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -165,7 +162,7 @@ export class FilmsService {
       const result = await query;
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -179,7 +176,7 @@ export class FilmsService {
         .where(eq(schema.films.type, filmType));
       return result[0].genres;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -196,7 +193,7 @@ export class FilmsService {
         .returning(schema.FilmResponseObject);
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -213,7 +210,7 @@ export class FilmsService {
         .limit(limit);
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -235,7 +232,7 @@ export class FilmsService {
         .limit(limit);
       return result;
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 
@@ -249,7 +246,7 @@ export class FilmsService {
         .returning(schema.FilmResponseObject);
       return result[0];
     } catch (error) {
-      throw this.error.internalServerError(error);
+      throw this.errorsService.internalServerError(error);
     }
   }
 }

@@ -1,9 +1,9 @@
-import { IsIn, IsNumber, IsPositive, IsString, Length } from 'class-validator';
+import { IsIn, IsInt, IsString, Length, Min } from 'class-validator';
 import { MediaEnum, MediaType } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class MediaEmbeddingDto {
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(MediaEnum) })
   @IsIn(Object.values(MediaEnum))
   mediaType: MediaType;
 
@@ -13,7 +13,7 @@ export class MediaEmbeddingDto {
   query: string;
 
   @ApiProperty()
-  @IsNumber()
-  @IsPositive()
+  @IsInt()
+  @Min(1)
   limit: number;
 }
