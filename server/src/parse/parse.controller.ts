@@ -22,7 +22,7 @@ export class ParseController {
     description: 'Remember title and year in English',
   })
   async getTitle(@Query('query') query: string): Promise<TitleResponseDto> {
-    this.logger.verbose(`Get (/title) | query: (${query})`);
+    this.logger.verbose(`Get (/title) |  query: (${query})`);
     const result = await this.parseService.getTitle({ query });
     return result;
   }
@@ -39,7 +39,7 @@ export class ParseController {
     @Param('mediaType') mediaType: MediaType,
   ): Promise<unknown> {
     this.logger.verbose(
-      `Get (/fields/:mediaType) | media type: (${mediaType}), title: (${title}), keys: (${keys})`,
+      `Get (/fields/:mediaType/:gptModel) | media type: (${mediaType}), title: (${title}), keys: (${keys})`,
     );
     const keyArr = keys.split(',').map((key) => key.trim());
     const result = await this.parseService.fieldsParse({

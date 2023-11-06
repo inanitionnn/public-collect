@@ -22,7 +22,9 @@ export class GptService {
         apiKey: process.env.OPEN_AI_KEY,
       });
       const completion = await openAi.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-4-1106-preview',
+        response_format: { type: 'json_object' },
+
         messages: [
           {
             role: 'system',
@@ -41,8 +43,8 @@ export class GptService {
 
       this.logger.log(
         `Usage: ${completion.usage?.total_tokens} tokens (${(
-          ((completion.usage?.prompt_tokens || 0) * 0.0015 +
-            (completion.usage?.completion_tokens || 0) * 0.002) /
+          ((completion.usage?.prompt_tokens || 0) * 0.01 +
+            (completion.usage?.completion_tokens || 0) * 0.03) /
           1000
         ).toFixed(7)}$)`,
       );
@@ -54,12 +56,12 @@ export class GptService {
   }
 
   private convertToJson(response: string) {
-    const regex = /[{].*[}]$/s;
-    const jsonString = response.match(regex);
-    if (!jsonString) {
-      return null;
-    }
-    const jsonResponse = JSON.parse(jsonString[0]);
+    // const regex = /[{].*[}]$/s;
+    // const jsonString = response.match(regex);
+    // if (!jsonString) {
+    //   return null;
+    // }
+    const jsonResponse = JSON.parse(response);
     return jsonResponse;
   }
 
