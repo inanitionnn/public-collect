@@ -16,12 +16,13 @@ async function bootstrap() {
     new FastifyAdapter({ logger: false }),
   );
   const port = process.env.PORT || 3000;
+  const clientUrl = process.env.CLIENT_URL;
   const logger = new Logger('Main');
   const cacheManager: Cache = app.get(CACHE_MANAGER);
   await cacheManager.reset();
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
-
+  app.enableCors({ credentials: true, origin: clientUrl });
   const config = new DocumentBuilder()
     .setTitle('Collect')
     .setVersion('1.0')

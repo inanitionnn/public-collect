@@ -16,19 +16,14 @@ export class ParseController {
   constructor(private readonly parseService: ParseService) {}
 
   //#region Gpt
-  @Get('title/:mediaType')
+  @Get('title')
   @ApiOperation({
     summary: 'Gpt Title Parse',
     description: 'Remember title and year in English',
   })
-  async getTitle(
-    @Query('query') query: string,
-    @Param('mediaType') mediaType: MediaType,
-  ): Promise<TitleResponseDto> {
-    this.logger.verbose(
-      `Get (/title/:mediaType) | media type: (${mediaType}), query: (${query})`,
-    );
-    const result = await this.parseService.getTitle({ query, mediaType });
+  async getTitle(@Query('query') query: string): Promise<TitleResponseDto> {
+    this.logger.verbose(`Get (/title) | query: (${query})`);
+    const result = await this.parseService.getTitle({ query });
     return result;
   }
 
@@ -99,7 +94,7 @@ export class ParseController {
     return result;
   }
 
-  @Get('wiki/search/:count')
+  @Get('wiki/search/:mediaType/:count')
   @ApiOperation({
     summary: 'Wiki Search',
     description: 'Search wiki pages by query',
@@ -107,12 +102,14 @@ export class ParseController {
   async wikiSearch(
     @Query('query') query: string,
     @Param('count') count: string,
+    @Param('mediaType') mediaType: MediaType,
   ): Promise<SearchResponseDto[]> {
     this.logger.verbose(
-      `Get (/wiki/search/:count) | query: (${query}), count: (${count})`,
+      `Get (/wiki/search/:mediaType/:count) | query: (${query}), media type: (${mediaType}) ,count: (${count})`,
     );
     const result = await this.parseService.wikiSearch({
       query,
+      mediaType,
       count: Number(count),
     });
     return result;

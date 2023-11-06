@@ -1,9 +1,5 @@
-import { MediaType } from 'src/media/types';
-
 export class Promts {
-  static getSearchTitlePrompt(mediaType: MediaType): string {
-    return `You have to guess the ${mediaType} and respond only with json filled with information in English. Fields: title string, year number`;
-  }
+  static readonly getSearchTitlePrompt = `You have to guess the media (film or serie or comic or book etc) and respond only with json filled with information in English. Fields: title string, year number`;
 
   static readonly StartParsePromt =
     "You're a knowledgeable geek. Your job is to fill in the data about different media perfectly. Reply only json file filled with data in english. If you don't find something write null. If unable to find data return {}. Json file has only the following fields:";

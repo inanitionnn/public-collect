@@ -61,7 +61,7 @@ export class ParseService {
     const error = await validation(TitleParseDto, dto);
     if (error) this.errorsService.badRequest(error);
     // Cache
-    const CACHE_KEY = `getTitle:${dto.mediaType}:${dto.query}`;
+    const CACHE_KEY = `getTitle:${dto.query}`;
     const cache: TitleResponseDto = await this.cacheManager.get(CACHE_KEY);
     if (cache) return cache;
     // Query
@@ -111,7 +111,7 @@ export class ParseService {
     const error = await validation(SearchParseDto, dto);
     if (error) this.errorsService.badRequest(error);
 
-    const CACHE_KEY = `wikiSearch:${dto.query}:${dto.count}`;
+    const CACHE_KEY = `wikiSearch:${dto.query}:${dto.mediaType}:${dto.count}`;
     const cache: SearchResponseDto[] = await this.cacheManager.get(CACHE_KEY);
     if (cache) return cache;
     const result = await this.searchService.searchByQuery(dto);

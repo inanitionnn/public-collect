@@ -227,7 +227,7 @@ export class MediaController {
   })
   async create(
     @Body() mediaCreateDto: MediaCreateDto,
-  ): Promise<MediaResponseDto> {
+  ): Promise<MediaProgressDto> {
     this.logger.verbose(
       `Post (/) | media type: (${mediaCreateDto.mediaType}), media title: (${mediaCreateDto.media.title})`,
     );

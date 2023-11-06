@@ -102,9 +102,9 @@ export class GptService {
   //#region Public
   public async getTitle(dto: TitleParseDto): Promise<TitleResponseDto> {
     this.logger.log('titleParse');
-    const { mediaType, query } = dto;
+    const { query } = dto;
     const gptAnswer = await this.sendMessage(
-      Promts.getSearchTitlePrompt(mediaType),
+      Promts.getSearchTitlePrompt,
       query,
       0.5,
       100,

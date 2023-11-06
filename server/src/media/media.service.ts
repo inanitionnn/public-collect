@@ -24,6 +24,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { validation } from 'src/utils/validation';
 import { ErrorsService } from 'src/errors/errors.service';
+import { ProgressService } from 'src/progress';
 
 @Injectable()
 export class MediaService {
@@ -37,14 +38,19 @@ export class MediaService {
     private readonly comicsService: ComicsService,
     private readonly booksService: BooksService,
     private readonly errorsService: ErrorsService,
+    private readonly progressService: ProgressService,
   ) {}
 
-  public async create(dto: MediaCreateDto): Promise<MediaResponseDto> {
+  // TODO collections and Orders
+  //  TODO add delete and update to Progress
+  // TODO update image
+
+  public async create(dto: MediaCreateDto): Promise<MediaProgressDto> {
     this.logger.log('create');
-    // TODO Create Progress
+
     const error = await validation(MediaCreateDto, dto);
     if (error) this.errorsService.badRequest(error);
-    const { media, mediaType } = dto;
+    const { media, mediaType, progress } = dto;
 
     if (media.image) {
       media.image = await this.filesService.create(mediaType, media.image);
@@ -55,26 +61,27 @@ export class MediaService {
     );
 
     try {
+      const progressResult = await this.progressService.create(progress);
       switch (mediaType) {
         case 'film': {
           const film = media as FilmCreateDto;
-          const result = await this.filmsService.create(film);
-          return { media: result };
+          const mediaResult = await this.filmsService.create(film);
+          return { media: { media: mediaResult, progress: progressResult } };
         }
         case 'serie': {
           const serie = media as SerieCreateDto;
-          const result = await this.seriesService.create(serie);
-          return { media: result };
+          const mediaResult = await this.seriesService.create(serie);
+          return { media: { media: mediaResult, progress: progressResult } };
         }
         case 'comic': {
           const comic = media as ComicCreateDto;
-          const result = await this.comicsService.create(comic);
-          return { media: result };
+          const mediaResult = await this.comicsService.create(comic);
+          return { media: { media: mediaResult, progress: progressResult } };
         }
         case 'book': {
           const book = media as BookCreateDto;
-          const result = await this.booksService.create(book);
-          return { media: result };
+          const mediaResult = await this.booksService.create(book);
+          return { media: { media: mediaResult, progress: progressResult } };
         }
       }
     } catch (error) {
@@ -196,6 +203,7 @@ export class MediaService {
             sortType,
             watched,
           );
+          break;
         }
         case 'serie': {
           result = await this.seriesService.getMany(
@@ -205,6 +213,7 @@ export class MediaService {
             sortType,
             watched,
           );
+          break;
         }
         case 'comic': {
           result = await this.comicsService.getMany(
@@ -214,6 +223,7 @@ export class MediaService {
             sortType,
             watched,
           );
+          break;
         }
         case 'book': {
           result = await this.booksService.getMany(
@@ -223,6 +233,7 @@ export class MediaService {
             sortType,
             watched,
           );
+          break;
         }
       }
     } catch (error) {
@@ -268,6 +279,7 @@ export class MediaService {
             fromYear,
             toYear,
           );
+          break;
         }
         case 'serie': {
           result = await this.seriesService.getRandom(
@@ -277,6 +289,7 @@ export class MediaService {
             fromYear,
             toYear,
           );
+          break;
         }
         case 'comic': {
           result = await this.comicsService.getRandom(
@@ -286,6 +299,7 @@ export class MediaService {
             fromYear,
             toYear,
           );
+          break;
         }
         case 'book': {
           result = await this.booksService.getRandom(
@@ -295,6 +309,7 @@ export class MediaService {
             fromYear,
             toYear,
           );
+          break;
         }
       }
     } catch (error) {

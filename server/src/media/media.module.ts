@@ -8,6 +8,7 @@ import { BooksModule } from 'src/books';
 import { SeriesModule } from 'src/series';
 import { MediaController } from './media.controller';
 import { ErrorsModule } from 'src/errors/errors.module';
+import { ProgressModule } from 'src/progress';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ErrorsModule } from 'src/errors/errors.module';
     ComicsModule,
     BooksModule,
     ParseModule,
+    ProgressModule,
   ],
   providers: [MediaService],
   controllers: [MediaController],

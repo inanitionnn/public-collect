@@ -5,6 +5,7 @@ import { ComicCreateDto } from 'src/comics';
 import { BookCreateDto } from 'src/books';
 import { SerieCreateDto } from 'src/series';
 import { IsIn } from 'class-validator';
+import { ProgressCreateDto } from 'src/progress';
 
 @ApiExtraModels(FilmCreateDto, SerieCreateDto, ComicCreateDto, BookCreateDto)
 export class MediaCreateDto {
@@ -16,4 +17,6 @@ export class MediaCreateDto {
     oneOf: refs(FilmCreateDto, SerieCreateDto, ComicCreateDto, BookCreateDto),
   })
   media: FilmCreateDto | SerieCreateDto | ComicCreateDto | BookCreateDto;
+
+  progress: ProgressCreateDto;
 }

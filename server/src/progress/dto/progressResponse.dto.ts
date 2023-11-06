@@ -17,25 +17,21 @@ export class ProgressResponseDto {
   @IsIn(Object.values(WatchedEnum))
   watched?: WatchedType;
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   @Length(1, 256)
   finishedOn?: string;
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   note?: string;
 
-  @ApiProperty()
   @IsOptional()
   @IsInt()
   @Min(1)
   @Max(10)
   rate?: number;
 
-  @ApiProperty()
   @IsOptional()
   @IsDate()
   createdAt?: Date;

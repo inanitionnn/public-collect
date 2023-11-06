@@ -58,11 +58,3 @@ export const progressRelations = relations(progress, ({ many }) => ({
   comics: many(comics),
   books: many(books),
 }));
-
-export const ProgressResponseObject = {
-  watched: progress.watched,
-  finishedOn: progress.finishedOn,
-  note: progress.note,
-  rate: progress.rate,
-  createdAt: progress.createdAt,
-};

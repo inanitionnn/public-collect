@@ -46,11 +46,11 @@ export class SearchService {
     dto: SearchParseDto,
   ): Promise<SearchResponseDto[]> {
     this.logger.log(`searchByQuery`);
-    const { count, query } = dto;
+    const { count, mediaType, query } = dto;
     // this.isEngTextCheck(query);
 
     const url = `https://en.wikipedia.org/w/index.php?title=Special:Search&limit=20&offset=0&ns0=1&search=${encodeURIComponent(
-      query,
+      `${mediaType} ${query}`,
     )}`;
     try {
       const response = await axios.get(url);
@@ -79,7 +79,7 @@ export class SearchService {
 
         results.push({
           link,
-          image,
+          image: image ? 'https:' + image : null,
           title,
           description,
         });

@@ -1,12 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsString, Min } from 'class-validator';
+import { IsIn, IsInt, IsString, Min } from 'class-validator';
+import { MediaEnum, MediaType } from 'src/media';
 
 export class SearchParseDto {
-  @ApiProperty()
   @IsString()
   query: string;
 
-  @ApiProperty()
+  @ApiProperty({ enum: Object.values(MediaEnum) })
+  @IsIn(Object.values(MediaEnum))
+  mediaType: MediaType;
+
   @IsInt()
   @Min(0)
   count: number;

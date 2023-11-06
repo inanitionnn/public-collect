@@ -1,9 +1,20 @@
 import { books } from './schemas/books.schema';
 import { comics } from './schemas/comics.schema';
 import { films } from './schemas/films.schema';
-import { ProgressResponseObject } from './schemas/progress.schema';
+import { progress } from './schemas/progress.schema';
 import { seasons } from './schemas/seasons.schema';
 import { series } from './schemas/series.schema';
+
+//#region Progress
+export const ProgressResponseObject = {
+  watched: progress.watched,
+  finishedOn: progress.finishedOn,
+  note: progress.note,
+  rate: progress.rate,
+  createdAt: progress.createdAt,
+};
+
+//#endregion Progress
 
 //#region Films
 export const FilmResponseObject = {
